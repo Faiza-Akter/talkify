@@ -3,8 +3,9 @@
 import socket
 import threading
 
-from shared.config import HOST, PORT, BUFFER_SIZE, ENCODING
+from shared.config import HOST, PORT, BUFFER_SIZE, ENCODING, DEFAULT_ROOM
 from shared.protocol import create_packet, encode_packet, decode_packets
+from server.room_manager import RoomManager
 
 
 class ChatServer:
@@ -21,12 +22,11 @@ class ChatServer:
         self.client_usernames = {}
 
         self.lock = threading.Lock()
+        self.room_manager = RoomManager()
 
     def start(self):
         """Start the TCP chat server."""
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        # Allows quick restart without waiting for port release
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         self.server_socket.bind((self.host, self.port))
@@ -52,7 +52,6 @@ class ChatServer:
                 self.stop()
                 break
             except OSError:
-                # Happens when server socket is closed during shutdown
                 break
             except Exception as error:
                 print(f"[ACCEPT ERROR] {error}")
@@ -82,13 +81,17 @@ class ChatServer:
 
     def handle_client(self, client_socket, client_address):
         """
-        Handle a single connected client.
+        Handle one connected client.
 
-        Step 1 supports:
+        Step 2 supports:
         - login
         - public chat
+        - private chat
+        - room joining
+        - room messaging
         - join/leave notifications
-        - connected user list
+        - user list
+        - room list
         """
         username = None
         text_buffer = ""
@@ -106,7 +109,6 @@ class ChatServer:
                     packet_type = packet.get("type")
 
                     if packet_type == "login":
-                        # Prevent same socket from logging in again
                         if client_socket in self.client_usernames:
                             error_packet = create_packet(
                                 packet_type="error",
@@ -142,10 +144,14 @@ class ChatServer:
 
                         username = requested_username
 
+                        # Automatically join default room
+                        self.room_manager.add_user_to_room(username, DEFAULT_ROOM)
+
                         success_packet = create_packet(
                             packet_type="login_success",
                             sender="server",
-                            message=f"Welcome, {username}!"
+                            message=f"Welcome, {username}!",
+                            extra={"room": DEFAULT_ROOM}
                         )
                         client_socket.sendall(encode_packet(success_packet))
 
@@ -157,22 +163,18 @@ class ChatServer:
                             message=f"{username} joined the chat."
                         )
                         self.broadcast(join_packet, exclude_socket=client_socket)
+
                         self.send_user_list()
+                        self.send_room_list()
 
                     elif packet_type == "public_message":
-                        # User must log in first
                         if client_socket not in self.client_usernames:
-                            error_packet = create_packet(
-                                packet_type="error",
-                                sender="server",
-                                message="You must log in before sending messages."
-                            )
-                            client_socket.sendall(encode_packet(error_packet))
+                            self.send_error(client_socket, "You must log in before sending messages.")
                             continue
 
                         username = self.client_usernames[client_socket]
-
                         msg = packet.get("message", "").strip()
+
                         if not msg:
                             continue
 
@@ -185,13 +187,76 @@ class ChatServer:
                         print(f"[PUBLIC] {username}: {msg}")
                         self.broadcast(public_packet)
 
-                    else:
-                        unknown_packet = create_packet(
-                            packet_type="error",
+                    elif packet_type == "private_message":
+                        if client_socket not in self.client_usernames:
+                            self.send_error(client_socket, "You must log in before sending private messages.")
+                            continue
+
+                        username = self.client_usernames[client_socket]
+                        target_username = packet.get("target", "").strip()
+                        msg = packet.get("message", "").strip()
+
+                        if not target_username or not msg:
+                            self.send_error(client_socket, "Private message target and message are required.")
+                            continue
+
+                        self.send_private_message(username, target_username, msg)
+
+                    elif packet_type == "join_room":
+                        if client_socket not in self.client_usernames:
+                            self.send_error(client_socket, "You must log in before joining a room.")
+                            continue
+
+                        username = self.client_usernames[client_socket]
+                        room_name = packet.get("room", "").strip()
+
+                        if not room_name:
+                            self.send_error(client_socket, "Room name cannot be empty.")
+                            continue
+
+                        self.room_manager.add_user_to_room(username, room_name)
+
+                        joined_packet = create_packet(
+                            packet_type="room_joined",
                             sender="server",
-                            message=f"Unknown packet type: {packet_type}"
+                            room=room_name,
+                            message=f"{username} joined room '{room_name}'."
                         )
-                        client_socket.sendall(encode_packet(unknown_packet))
+                        client_socket.sendall(encode_packet(joined_packet))
+
+                        print(f"[ROOM JOIN] {username} joined room: {room_name}")
+
+                        self.send_room_list()
+
+                    elif packet_type == "room_message":
+                        if client_socket not in self.client_usernames:
+                            self.send_error(client_socket, "You must log in before sending room messages.")
+                            continue
+
+                        username = self.client_usernames[client_socket]
+                        room_name = packet.get("room", "").strip()
+                        msg = packet.get("message", "").strip()
+
+                        if not room_name or not msg:
+                            self.send_error(client_socket, "Room name and message are required.")
+                            continue
+
+                        if not self.room_manager.is_user_in_room(username, room_name):
+                            self.send_error(client_socket, f"You are not a member of room '{room_name}'.")
+                            continue
+
+                        room_packet = create_packet(
+                            packet_type="room_message",
+                            sender=username,
+                            room=room_name,
+                            message=msg
+                        )
+
+                        print(f"[ROOM:{room_name}] {username}: {msg}")
+                        self.broadcast_to_room(room_name, room_packet)
+
+                    else:
+                        self.send_error(client_socket, f"Unknown packet type: {packet_type}")
 
         except ConnectionResetError:
             print(f"[DISCONNECTED] {client_address} forcibly closed the connection.")
@@ -199,6 +264,44 @@ class ChatServer:
             print(f"[CLIENT ERROR] {client_address}: {error}")
         finally:
             self.remove_client(client_socket)
+
+    def send_error(self, client_socket, message):
+        """Send error packet to a client."""
+        error_packet = create_packet(
+            packet_type="error",
+            sender="server",
+            message=message
+        )
+        try:
+            client_socket.sendall(encode_packet(error_packet))
+        except Exception:
+            pass
+
+    def send_private_message(self, sender_username, target_username, msg):
+        """Send private message from one user to another."""
+        with self.lock:
+            target_socket = self.clients.get(target_username)
+            sender_socket = self.clients.get(sender_username)
+
+        if not target_socket:
+            if sender_socket:
+                self.send_error(sender_socket, f"User '{target_username}' is not online.")
+            return
+
+        private_packet = create_packet(
+            packet_type="private_message",
+            sender=sender_username,
+            target=target_username,
+            message=msg
+        )
+
+        try:
+            target_socket.sendall(encode_packet(private_packet))
+            if sender_socket and sender_socket != target_socket:
+                sender_socket.sendall(encode_packet(private_packet))
+            print(f"[PRIVATE] {sender_username} -> {target_username}: {msg}")
+        except Exception:
+            self.remove_client(target_socket)
 
     def remove_client(self, client_socket):
         """Remove disconnected client from server lists."""
@@ -213,6 +316,8 @@ class ChatServer:
             pass
 
         if username:
+            self.room_manager.remove_user_from_all_rooms(username)
+
             print(f"[LEFT] {username} disconnected.")
 
             leave_packet = create_packet(
@@ -222,9 +327,10 @@ class ChatServer:
             )
             self.broadcast(leave_packet)
             self.send_user_list()
+            self.send_room_list()
 
     def broadcast(self, packet, exclude_socket=None):
-        """Send a packet to all connected clients."""
+        """Send packet to all connected clients."""
         encoded = encode_packet(packet)
 
         with self.lock:
@@ -244,8 +350,29 @@ class ChatServer:
         for sock in dead_sockets:
             self.remove_client(sock)
 
+    def broadcast_to_room(self, room_name, packet):
+        """Send a packet only to users inside a specific room."""
+        encoded = encode_packet(packet)
+        room_users = self.room_manager.get_users_in_room(room_name)
+
+        dead_sockets = []
+
+        with self.lock:
+            for username in room_users:
+                sock = self.clients.get(username)
+                if not sock:
+                    continue
+
+                try:
+                    sock.sendall(encoded)
+                except Exception:
+                    dead_sockets.append(sock)
+
+        for sock in dead_sockets:
+            self.remove_client(sock)
+
     def send_user_list(self):
-        """Send updated user list to all connected clients."""
+        """Send updated user list to all clients."""
         with self.lock:
             usernames = list(self.clients.keys())
 
@@ -253,5 +380,16 @@ class ChatServer:
             packet_type="user_list",
             sender="server",
             extra={"users": usernames}
+        )
+        self.broadcast(packet)
+
+    def send_room_list(self):
+        """Send updated room list to all clients."""
+        rooms = self.room_manager.get_all_rooms()
+
+        packet = create_packet(
+            packet_type="room_list",
+            sender="server",
+            extra={"rooms": rooms}
         )
         self.broadcast(packet)

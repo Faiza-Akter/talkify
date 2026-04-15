@@ -25,6 +25,10 @@ class ChatServer:
     def start(self):
         """Start the TCP chat server."""
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Allows quick restart without waiting for port release
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen(10)
         self.is_running = True
@@ -47,6 +51,9 @@ class ChatServer:
                 print("\n[SERVER STOPPED BY USER]")
                 self.stop()
                 break
+            except OSError:
+                # Happens when server socket is closed during shutdown
+                break
             except Exception as error:
                 print(f"[ACCEPT ERROR] {error}")
 
@@ -55,14 +62,15 @@ class ChatServer:
         self.is_running = False
 
         with self.lock:
-            for sock in list(self.client_usernames.keys()):
-                try:
-                    sock.close()
-                except Exception:
-                    pass
-
+            sockets_to_close = list(self.client_usernames.keys())
             self.clients.clear()
             self.client_usernames.clear()
+
+        for sock in sockets_to_close:
+            try:
+                sock.close()
+            except Exception:
+                pass
 
         if self.server_socket:
             try:
@@ -75,11 +83,12 @@ class ChatServer:
     def handle_client(self, client_socket, client_address):
         """
         Handle a single connected client.
-        For step 1:
-        - expects a login packet first
-        - stores username
-        - broadcasts join/leave messages
-        - broadcasts public messages
+
+        Step 1 supports:
+        - login
+        - public chat
+        - join/leave notifications
+        - connected user list
         """
         username = None
         text_buffer = ""
@@ -97,27 +106,41 @@ class ChatServer:
                     packet_type = packet.get("type")
 
                     if packet_type == "login":
-                        username = packet.get("sender", "").strip()
+                        # Prevent same socket from logging in again
+                        if client_socket in self.client_usernames:
+                            error_packet = create_packet(
+                                packet_type="error",
+                                sender="server",
+                                message="You are already logged in."
+                            )
+                            client_socket.sendall(encode_packet(error_packet))
+                            continue
 
-                        if not username:
+                        requested_username = packet.get("sender", "").strip()
+
+                        if not requested_username:
                             error_packet = create_packet(
                                 packet_type="login_failed",
+                                sender="server",
                                 message="Username cannot be empty."
                             )
                             client_socket.sendall(encode_packet(error_packet))
                             continue
 
                         with self.lock:
-                            if username in self.clients:
+                            if requested_username in self.clients:
                                 error_packet = create_packet(
                                     packet_type="login_failed",
+                                    sender="server",
                                     message="Username already taken."
                                 )
                                 client_socket.sendall(encode_packet(error_packet))
                                 continue
 
-                            self.clients[username] = client_socket
-                            self.client_usernames[client_socket] = username
+                            self.clients[requested_username] = client_socket
+                            self.client_usernames[client_socket] = requested_username
+
+                        username = requested_username
 
                         success_packet = create_packet(
                             packet_type="login_success",
@@ -137,8 +160,17 @@ class ChatServer:
                         self.send_user_list()
 
                     elif packet_type == "public_message":
-                        if not username:
+                        # User must log in first
+                        if client_socket not in self.client_usernames:
+                            error_packet = create_packet(
+                                packet_type="error",
+                                sender="server",
+                                message="You must log in before sending messages."
+                            )
+                            client_socket.sendall(encode_packet(error_packet))
                             continue
+
+                        username = self.client_usernames[client_socket]
 
                         msg = packet.get("message", "").strip()
                         if not msg:
@@ -172,7 +204,7 @@ class ChatServer:
         """Remove disconnected client from server lists."""
         with self.lock:
             username = self.client_usernames.pop(client_socket, None)
-            if username and username in self.clients:
+            if username in self.clients:
                 del self.clients[username]
 
         try:
@@ -192,26 +224,28 @@ class ChatServer:
             self.send_user_list()
 
     def broadcast(self, packet, exclude_socket=None):
-        """Send packet to all connected clients."""
+        """Send a packet to all connected clients."""
         encoded = encode_packet(packet)
 
         with self.lock:
-            dead_sockets = []
+            recipients = list(self.clients.values())
 
-            for username, sock in self.clients.items():
-                if sock == exclude_socket:
-                    continue
+        dead_sockets = []
 
-                try:
-                    sock.sendall(encoded)
-                except Exception:
-                    dead_sockets.append(sock)
+        for sock in recipients:
+            if sock == exclude_socket:
+                continue
+
+            try:
+                sock.sendall(encoded)
+            except Exception:
+                dead_sockets.append(sock)
 
         for sock in dead_sockets:
             self.remove_client(sock)
 
     def send_user_list(self):
-        """Send updated user list to all clients."""
+        """Send updated user list to all connected clients."""
         with self.lock:
             usernames = list(self.clients.keys())
 

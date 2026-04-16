@@ -1,0 +1,346 @@
+QWidget {
+    background: #F7F9FC;
+    color: #26425A;
+    font-family: "Segoe UI";
+    font-size: 14px;
+}
+
+QLineEdit, QTextEdit, QListWidget {
+    background: #FFFFFF;
+    border: 1px solid #DDE7F3;
+    border-radius: 16px;
+    padding: 10px 12px;
+    selection-background-color: #86A8CF;
+    selection-color: white;
+}
+
+QTextEdit {
+    padding-top: 12px;
+}
+
+QPushButton {
+    background: #E9D4E0;
+    color: #26425A;
+    border: none;
+    border-radius: 14px;
+    padding: 10px 16px;
+    font-weight: 700;
+}
+
+QPushButton:hover {
+    background: #DFC0D1;
+}
+
+QPushButton:pressed {
+    background: #C38EB4;
+    color: white;
+}
+
+QPushButton#primaryButton {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 #86A8CF,
+        stop:1 #C38EB4
+    );
+    color: white;
+    font-weight: 800;
+    padding: 12px 18px;
+}
+
+QPushButton#primaryButton:hover {
+    background: #7E9FC7;
+}
+
+QFrame#splashCard {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:1,
+        stop:0 #EEF4FB,
+        stop:1 #F7EAF1
+    );
+    border-radius: 34px;
+    border: 1px solid #E3EAF2;
+}
+
+QLabel#splashTitle {
+    color: #0B1F3A;
+    font-size: 38px;
+    font-weight: 900;
+}
+
+QLabel#splashSubtitle {
+    color: #5E748B;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+QLabel#splashFooter {
+    color: #7A8EA3;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+QFrame#authHeroPanel {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:1,
+        stop:0 #EAF1F8,
+        stop:1 #F6EAF1
+    );
+    border-radius: 30px;
+    border: 1px solid #E3EAF2;
+}
+
+QFrame#authCard {
+    background: #FFFFFF;
+    border-radius: 30px;
+    border: 1px solid #E3EAF2;
+}
+
+QLabel#authBadge {
+    color: #0B1F3A;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+QLabel#authHeadline {
+    color: #0B1F3A;
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+QLabel#authSubtitle, QLabel#authFormSubtitle {
+    color: #5B728A;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+QLabel#authTitle {
+    color: #0B1F3A;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+QLabel#authError {
+    color: #B94A67;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+QLabel#authFooterNote {
+    color: #7A8EA3;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+QFrame#palettePreviewCard,
+QFrame#miniStatCard {
+    background: rgba(255, 255, 255, 0.72);
+    border-radius: 20px;
+    border: 1px solid #E3EAF2;
+}
+
+QLabel#miniStatTitle {
+    color: #6B7E92;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+QLabel#miniStatValue {
+    color: #0B1F3A;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+QFrame#sidebarPanel {
+    background: #FFFFFF;
+    border-radius: 28px;
+    border: 1px solid #E3EAF2;
+}
+
+QFrame#brandCard {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 #EEF4FB,
+        stop:1 #F7EDF3
+    );
+    border-radius: 22px;
+    border: 1px solid #E3EAF2;
+}
+
+QLabel#brandTitle {
+    color: #0B1F3A;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+QLabel#brandSubtitle {
+    color: #6B7E92;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+QFrame#sectionCard {
+    background: #FCFDFE;
+    border-radius: 22px;
+    border: 1px solid #E3EAF2;
+}
+
+QLabel#sectionTitle {
+    color: #26425A;
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+QFrame#chatMainPanel {
+    background: transparent;
+}
+
+QFrame#chatTopbar {
+    background: #FFFFFF;
+    border: 1px solid #E3EAF2;
+    border-radius: 24px;
+}
+
+QLabel#chatTitle {
+    color: #0B1F3A;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+QLabel#chatSubtitle {
+    color: #6E8094;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+QLabel#statusChip {
+    background: #EAF4EC;
+    color: #3B7A57;
+    border: 1px solid #D5EADB;
+    border-radius: 14px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+QScrollArea#chatScrollArea {
+    border: none;
+    background: transparent;
+}
+
+QFrame#composerCard {
+    background: #FFFFFF;
+    border: 1px solid #E3EAF2;
+    border-radius: 24px;
+}
+
+QLabel#contextLabel {
+    color: #6A7E91;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+QFrame#messageBubbleOwn {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 #86A8CF,
+        stop:1 #C38EB4
+    );
+    border-radius: 22px;
+}
+
+QFrame#messageBubbleOther {
+    background: #FFFFFF;
+    border: 1px solid #E3EAF2;
+    border-radius: 22px;
+}
+
+QLabel#messageSender {
+    font-size: 12px;
+    font-weight: 900;
+    color: #0B1F3A;
+}
+
+QLabel#messageText {
+    font-size: 14px;
+    color: #26425A;
+    line-height: 1.5;
+}
+
+QLabel#messageMeta {
+    font-size: 11px;
+    color: #5D7288;
+    font-weight: 700;
+}
+
+QLabel#systemNotice {
+    color: #7A8EA3;
+    font-size: 12px;
+    font-weight: 700;
+    margin: 8px 0;
+}
+
+QFrame#userAvatar {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:1,
+        stop:0 #86A8CF,
+        stop:1 #C38EB4
+    );
+    border-radius: 19px;
+}
+
+QLabel#userAvatarText,
+QLabel#roomAvatarText {
+    color: white;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+QLabel#userItemTitle,
+QLabel#roomItemTitle {
+    color: #0B1F3A;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+QLabel#userItemSubtitle,
+QLabel#roomItemSubtitle {
+    color: #6C8094;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+QFrame#roomAvatar {
+    background: #EAF1F8;
+    border-radius: 19px;
+    border: 1px solid #D6E2EE;
+}
+
+QListWidget {
+    outline: none;
+}
+
+QListWidget::item {
+    padding: 6px;
+    border-radius: 14px;
+    margin: 4px 0;
+}
+
+QListWidget::item:selected {
+    background: #EEF4FB;
+    color: #0B1F3A;
+}
+
+QScrollBar:vertical {
+    width: 10px;
+    background: transparent;
+    margin: 4px 0 4px 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #CAD8E8;
+    min-height: 30px;
+    border-radius: 5px;
+}

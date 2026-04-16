@@ -7,6 +7,9 @@ from shared.config import HOST, PORT, BUFFER_SIZE, ENCODING, DEFAULT_ROOM
 from shared.protocol import create_packet, encode_packet, decode_packets
 from server.room_manager import RoomManager
 
+from server.database import Database
+from server.admin_manager import AdminManager
+
 
 class ChatServer:
     def __init__(self, host=HOST, port=PORT):
@@ -23,6 +26,10 @@ class ChatServer:
 
         self.lock = threading.Lock()
         self.room_manager = RoomManager()
+
+        # Step 3 additions
+        self.database = Database()
+        self.admin_manager = AdminManager(self, self.database)
 
     def start(self):
         """Start the TCP chat server."""
@@ -83,7 +90,7 @@ class ChatServer:
         """
         Handle one connected client.
 
-        Step 2 supports:
+        Step 3 supports:
         - login
         - public chat
         - private chat
@@ -92,6 +99,9 @@ class ChatServer:
         - join/leave notifications
         - user list
         - room list
+        - admin kick
+        - admin ban
+        - ban check on login
         """
         username = None
         text_buffer = ""
@@ -125,6 +135,16 @@ class ChatServer:
                                 packet_type="login_failed",
                                 sender="server",
                                 message="Username cannot be empty."
+                            )
+                            client_socket.sendall(encode_packet(error_packet))
+                            continue
+
+                        # Step 3: ban check before login success
+                        if self.database.is_user_banned(requested_username):
+                            error_packet = create_packet(
+                                packet_type="login_failed",
+                                sender="server",
+                                message="You are banned from the server."
                             )
                             client_socket.sendall(encode_packet(error_packet))
                             continue
@@ -254,6 +274,66 @@ class ChatServer:
 
                         print(f"[ROOM:{room_name}] {username}: {msg}")
                         self.broadcast_to_room(room_name, room_packet)
+
+                    # Step 3: admin kick
+                    elif packet_type == "kick":
+                        if client_socket not in self.client_usernames:
+                            self.send_error(client_socket, "You must log in before using admin commands.")
+                            continue
+
+                        admin_username = self.client_usernames[client_socket]
+                        target_username = packet.get("target", "").strip()
+
+                        if not target_username:
+                            self.send_error(client_socket, "Kick target username is required.")
+                            continue
+
+                        success, message = self.admin_manager.kick_user(admin_username, target_username)
+
+                        response_packet = create_packet(
+                            packet_type="admin_response",
+                            sender="server",
+                            message=message,
+                            extra={"success": success}
+                        )
+                        client_socket.sendall(encode_packet(response_packet))
+
+                        if success:
+                            print(f"[ADMIN KICK] {admin_username} kicked {target_username}")
+
+                    # Step 3: admin ban
+                    elif packet_type == "ban":
+                        if client_socket not in self.client_usernames:
+                            self.send_error(client_socket, "You must log in before using admin commands.")
+                            continue
+
+                        admin_username = self.client_usernames[client_socket]
+                        target_username = packet.get("target", "").strip()
+
+                        if not target_username:
+                            self.send_error(client_socket, "Ban target username is required.")
+                            continue
+
+                        reason = packet.get("message", "").strip()
+                        if not reason:
+                            reason = "No reason provided"
+
+                        success, message = self.admin_manager.ban_user(
+                            admin_username,
+                            target_username,
+                            reason
+                        )
+
+                        response_packet = create_packet(
+                            packet_type="admin_response",
+                            sender="server",
+                            message=message,
+                            extra={"success": success}
+                        )
+                        client_socket.sendall(encode_packet(response_packet))
+
+                        if success:
+                            print(f"[ADMIN BAN] {admin_username} banned {target_username}")
 
                     else:
                         self.send_error(client_socket, f"Unknown packet type: {packet_type}")

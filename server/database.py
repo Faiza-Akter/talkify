@@ -23,7 +23,7 @@ class Database:
         cursor.execute(query, (username,))
         return cursor.fetchone() is not None
 
-    def ban_user(self, username, banned_by, reason="No reason"):
+    def ban_user(self, username, banned_by, reason="No reason provided"):
         cursor = self.get_cursor()
         query = """
         INSERT INTO banned_users (username, banned_by, reason)

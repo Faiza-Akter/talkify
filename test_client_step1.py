@@ -60,6 +60,9 @@ def receive_messages(sock):
                 elif packet_type == "error":
                     print(f"\n[ERROR] {packet.get('message')}")
 
+                elif packet_type == "admin_response":
+                    print(f"\n[ADMIN] {packet.get('message')}")
+
                 else:
                     print(f"\n[RECEIVED] {packet}")
 
@@ -75,6 +78,8 @@ def show_help():
     print("  /join roomname")
     print("  /room roomname your room message")
     print("  /quit")
+    print("  /kick username")
+    print("  /ban username")
     print()
 
 
@@ -163,6 +168,27 @@ def main():
                 )
                 client_socket.sendall(encode_packet(packet))
 
+            elif user_input.startswith("/kick "):
+                target = user_input.split(" ", 1)[1]
+
+                packet = create_packet(
+                    packet_type="kick",
+                    sender=username,
+                    target=target
+                )
+                client_socket.sendall(encode_packet(packet))
+
+            elif user_input.startswith("/ban "):
+                target = user_input.split(" ", 1)[1]
+
+                packet = create_packet(
+                    packet_type="ban",
+                    sender=username,
+                    target=target
+                )
+                client_socket.sendall(encode_packet(packet))
+
+            
             else:
                 print("Unknown command.")
                 show_help()

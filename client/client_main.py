@@ -6,6 +6,7 @@ from PySide6.QtGui import QIcon
 
 from client.network_client import NetworkClient
 from client.ui.login_window import LoginWindow
+from client.ui.splash_screen import SplashScreen
 
 
 def load_stylesheet():
@@ -39,7 +40,12 @@ def run_client_app():
     app.setStyleSheet(load_stylesheet())
 
     network_client = NetworkClient()
-    window = LoginWindow(network_client)
-    window.show()
+    login_window = LoginWindow(network_client)
+
+    def show_login():
+        login_window.show()
+
+    splash = SplashScreen(on_finish_callback=show_login)
+    splash.show()
 
     sys.exit(app.exec())

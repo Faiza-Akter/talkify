@@ -1,163 +1,218 @@
 import os
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QGuiApplication, QPixmap
 from PySide6.QtWidgets import (
-    QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
-    QLineEdit, QFrame
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 from client.controllers.login_controller import LoginController
 
 
 class LoginWindow(QWidget):
-    def __init__(self, network_client):
+    def __init__(self, network_client) -> None:
         super().__init__()
+        self.setObjectName("appRoot")
+
         self.network_client = network_client
         self.controller = LoginController(self, network_client)
 
-        self.setWindowTitle("Talkify - Login")
-        self.resize(1120, 700)
-        self.setMinimumSize(980, 620)
+        self.setWindowTitle("Talkify - Sign In")
+        self._resize_to_screen()
+        self._build_ui()
 
-        self.build_ui()
+    def _resize_to_screen(self) -> None:
+        screen = QGuiApplication.primaryScreen().availableGeometry()
+        width = min(1260, int(screen.width() * 0.92))
+        height = min(740, int(screen.height() * 0.90))
+        self.resize(width, height)
+        self.setMinimumSize(1080, 640)
 
-    def build_ui(self):
+    def _build_ui(self) -> None:
         root = QHBoxLayout(self)
-        root.setContentsMargins(28, 28, 28, 28)
-        root.setSpacing(24)
+        root.setContentsMargins(24, 24, 24, 24)
 
-        left_panel = QFrame()
-        left_panel.setObjectName("authHeroPanel")
+        shell = QFrame()
+        shell.setObjectName("loginShell")
 
-        left_layout = QVBoxLayout(left_panel)
-        left_layout.setContentsMargins(42, 42, 42, 42)
-        left_layout.setSpacing(20)
+        shell_layout = QHBoxLayout(shell)
+        shell_layout.setContentsMargins(0, 0, 0, 0)
+        shell_layout.setSpacing(0)
 
-        badge = QLabel("TALKIFY • MODERN CHAT SYSTEM")
-        badge.setObjectName("authBadge")
+        # LEFT HERO SECTION
+        hero = QFrame()
+        hero.setObjectName("loginHero")
 
-        headline = QLabel("Professional communication, designed with elegance.")
-        headline.setWordWrap(True)
-        headline.setObjectName("authHeadline")
+        hero_layout = QVBoxLayout(hero)
+        hero_layout.setContentsMargins(36, 34, 36, 34)
+        hero_layout.setSpacing(18)
 
-        subtitle = QLabel(
-            "Talkify blends real-time messaging, rooms, private chat, and admin "
-            "controls inside a premium soft-light interface tailored for a standout "
-            "Computer Network project."
-        )
-        subtitle.setWordWrap(True)
-        subtitle.setObjectName("authSubtitle")
+        badge_row = QHBoxLayout()
+        badge = QLabel("TALKIFY  •  CLIENT-SERVER CHAT SYSTEM")
+        badge.setObjectName("loginBadge")
+        badge_row.addWidget(badge)
+        badge_row.addStretch()
 
-        stat_row = QHBoxLayout()
-        stat_row.setSpacing(14)
+        hero_logo = QLabel()
+        hero_logo.setAlignment(Qt.AlignCenter)
 
-        for title, value in [
-            ("Protocol", "TCP + JSON"),
-            ("GUI", "PySide6"),
-            ("Style", "Pastel Light")
-        ]:
-            card = QFrame()
-            card.setObjectName("miniStatCard")
-            card_layout = QVBoxLayout(card)
-            card_layout.setContentsMargins(16, 16, 16, 16)
+        # Prevents the logo from being cut
+        hero_logo.setFixedHeight(250)
 
-            label1 = QLabel(title)
-            label1.setObjectName("miniStatTitle")
-            label2 = QLabel(value)
-            label2.setObjectName("miniStatValue")
+        logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
 
-            card_layout.addWidget(label1)
-            card_layout.addWidget(label2)
-            stat_row.addWidget(card)
-
-        palette_card = QFrame()
-        palette_card.setObjectName("palettePreviewCard")
-        palette_layout = QHBoxLayout(palette_card)
-        palette_layout.setContentsMargins(18, 18, 18, 18)
-        palette_layout.setSpacing(12)
-
-        for color in ["#0B1F3A", "#C38EB4", "#E1CBD7", "#86A8CF", "#26425A"]:
-            swatch = QFrame()
-            swatch.setFixedSize(42, 42)
-            swatch.setStyleSheet(
-                f"background-color: {color}; border-radius: 21px; border: 2px solid white;"
-            )
-            palette_layout.addWidget(swatch)
-
-        palette_layout.addStretch()
-
-        left_layout.addWidget(badge)
-        left_layout.addStretch()
-        left_layout.addWidget(headline)
-        left_layout.addWidget(subtitle)
-        left_layout.addLayout(stat_row)
-        left_layout.addWidget(palette_card)
-        left_layout.addStretch()
-
-        right_panel = QFrame()
-        right_panel.setObjectName("authCard")
-        right_panel.setFixedWidth(390)
-
-        right_layout = QVBoxLayout(right_panel)
-        right_layout.setContentsMargins(36, 36, 36, 36)
-        right_layout.setSpacing(16)
-
-        logo_label = QLabel()
-        logo_label.setAlignment(Qt.AlignCenter)
-
-        logo_path = os.path.join(
-            os.path.dirname(__file__),
-            "assets",
-            "logo.png"
-        )
         if os.path.exists(logo_path):
-            pixmap = QPixmap(logo_path).scaled(
-                150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            hero_pixmap = QPixmap(logo_path).scaled(
+                215,
+                215,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation,
             )
-            logo_label.setPixmap(pixmap)
+            hero_logo.setPixmap(hero_pixmap)
 
-        title = QLabel("Welcome back")
-        title.setObjectName("authTitle")
-        title.setAlignment(Qt.AlignCenter)
+        hero_title = QLabel("Modern desktop messaging with client-server architecture.")
+        hero_title.setObjectName("loginHeroTitle")
+        hero_title.setWordWrap(True)
 
-        subtitle2 = QLabel("Enter your username to continue into Talkify.")
-        subtitle2.setObjectName("authFormSubtitle")
-        subtitle2.setAlignment(Qt.AlignCenter)
+        hero_text = QLabel(
+            "Talkify demonstrates multi-client communication, public and private messaging, "
+            "room-based chat, and admin moderation using Python, PySide6, and MySQL."
+        )
+        hero_text.setObjectName("loginHeroText")
+        hero_text.setWordWrap(True)
+
+        pills = QFrame()
+        pills.setObjectName("featureGlassCard")
+
+        pills_layout = QVBoxLayout(pills)
+        pills_layout.setContentsMargins(16, 16, 16, 16)
+        pills_layout.setSpacing(8)
+
+        for item_text in [
+            "Threaded TCP server for multiple clients",
+            "JSON-based public, private, and room messaging",
+            "MySQL-backed admin and banned-user checks",
+        ]:
+            pill = QLabel("• " + item_text)
+            pill.setObjectName("featurePillText")
+            pills_layout.addWidget(pill)
+
+        hero_layout.addLayout(badge_row)
+
+        # Logo area in the upper-middle section
+        hero_layout.addSpacing(6)
+        hero_layout.addWidget(hero_logo, alignment=Qt.AlignCenter)
+        hero_layout.addSpacing(18)
+
+        hero_layout.addWidget(hero_title)
+        hero_layout.addWidget(hero_text)
+        hero_layout.addWidget(pills)
+
+        # RIGHT LOGIN FORM SECTION
+        form_panel = QFrame()
+        form_panel.setObjectName("loginFormPanel")
+
+        form_layout = QVBoxLayout(form_panel)
+        form_layout.setContentsMargins(44, 34, 44, 34)
+        form_layout.setSpacing(16)
+
+        brand_row = QHBoxLayout()
+        brand_row.addStretch()
+
+        small_logo = QLabel()
+        small_logo.setAlignment(Qt.AlignCenter)
+
+        if os.path.exists(logo_path):
+            small_pixmap = QPixmap(logo_path).scaled(
+                48,
+                48,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation,
+            )
+            small_logo.setPixmap(small_pixmap)
+
+
+        heading = QLabel("Join Talkify")
+        heading.setObjectName("loginHeading")
+        heading.setAlignment(Qt.AlignCenter)
+
+        subtitle = QLabel("Enter a username to connect to the Talkify server.")
+        subtitle.setObjectName("loginSubheading")
+        subtitle.setAlignment(Qt.AlignCenter)
+        subtitle.setWordWrap(True)
+
+        form_card = QFrame()
+        form_card.setObjectName("loginCard")
+
+        form_card_layout = QVBoxLayout(form_card)
+        form_card_layout.setContentsMargins(22, 22, 22, 22)
+        form_card_layout.setSpacing(12)
+
+        field_label = QLabel("Username")
+        field_label.setObjectName("formLabel")
 
         self.username_input = QLineEdit()
-        self.username_input.setPlaceholderText("Username")
+        self.username_input.setPlaceholderText("e.g. Admin or Faiza123")
+        self.username_input.returnPressed.connect(self.on_login_clicked)
 
         self.error_label = QLabel("")
-        self.error_label.setObjectName("authError")
+        self.error_label.setObjectName("formError")
         self.error_label.setWordWrap(True)
         self.error_label.hide()
 
-        self.login_button = QPushButton("Join Talkify")
+        self.login_button = QPushButton("Connect to Server")
         self.login_button.setObjectName("primaryButton")
+        self.login_button.setFixedHeight(46)
         self.login_button.clicked.connect(self.on_login_clicked)
 
-        footer_note = QLabel("Designed with your custom Talkify color palette")
-        footer_note.setObjectName("authFooterNote")
-        footer_note.setAlignment(Qt.AlignCenter)
+        helper = QLabel(
+            "Duplicate usernames and banned users are validated by the server "
+            "before access is granted."
+        )
+        helper.setObjectName("helperText")
+        helper.setWordWrap(True)
 
-        right_layout.addWidget(logo_label)
-        right_layout.addSpacing(6)
-        right_layout.addWidget(title)
-        right_layout.addWidget(subtitle2)
-        right_layout.addSpacing(12)
-        right_layout.addWidget(self.username_input)
-        right_layout.addWidget(self.error_label)
-        right_layout.addSpacing(6)
-        right_layout.addWidget(self.login_button)
-        right_layout.addStretch()
-        right_layout.addWidget(footer_note)
+        feature_grid = QFrame()
+        feature_grid.setObjectName("tinyFeatureGrid")
 
-        root.addWidget(left_panel, 1)
-        root.addWidget(right_panel, 0, Qt.AlignCenter)
+        feature_grid_layout = QHBoxLayout(feature_grid)
+        feature_grid_layout.setContentsMargins(12, 10, 12, 10)
+        feature_grid_layout.setSpacing(14)
 
-    def on_login_clicked(self):
+        for text in ["Public Chat", "Private Chat", "Rooms", "Admin Control"]:
+            label = QLabel(text)
+            label.setObjectName("tinyFeatureText")
+            feature_grid_layout.addWidget(label)
+
+        form_card_layout.addWidget(field_label)
+        form_card_layout.addWidget(self.username_input)
+        form_card_layout.addWidget(self.error_label)
+        form_card_layout.addWidget(self.login_button)
+        form_card_layout.addWidget(helper)
+        form_card_layout.addWidget(feature_grid)
+
+        form_layout.addLayout(brand_row)
+        form_layout.addStretch()
+        form_layout.addWidget(heading)
+        form_layout.addWidget(subtitle)
+        form_layout.addSpacing(6)
+        form_layout.addWidget(form_card)
+        form_layout.addStretch()
+
+        shell_layout.addWidget(hero, 11)
+        shell_layout.addWidget(form_panel, 10)
+
+        root.addWidget(shell)
+
+    def on_login_clicked(self) -> None:
         username = self.username_input.text().strip()
+
         if not username:
             self.show_error("Username cannot be empty.")
             return
@@ -165,11 +220,10 @@ class LoginWindow(QWidget):
         self.error_label.hide()
         self.login_button.setText("Connecting...")
         self.login_button.setEnabled(False)
-
         self.controller.login(username)
 
-    def show_error(self, message):
+    def show_error(self, message: str) -> None:
         self.error_label.setText(message)
         self.error_label.show()
-        self.login_button.setText("Join Talkify")
+        self.login_button.setText("Start Messaging")
         self.login_button.setEnabled(True)

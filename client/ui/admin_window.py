@@ -46,6 +46,7 @@ class AdminWindow(QWidget):
         self.reply_context: Optional[dict] = None
 
         self.online_users: list[str] = []
+        self.user_profiles: dict[str, dict] = {}
         self.available_rooms: list[str] = [initial_room]
         self.banned_users: list[str] = []
         self.message_widgets: dict[str, QWidget] = {}
@@ -466,6 +467,9 @@ class AdminWindow(QWidget):
 
             item = QListWidgetItem()
             item.setData(Qt.UserRole, {"mode": mode, "name": name})
+            profile = self.user_profiles.get(name.lower(), {})
+            avatar_path = profile.get("profile_picture", "")
+
             widget = SidebarItem(
                 title=name,
                 subtitle=subtitle,
@@ -473,7 +477,9 @@ class AdminWindow(QWidget):
                 avatar_text=name[:1],
                 accent=(mode == "public"),
                 online=False,
+                avatar_path=avatar_path,
             )
+
             item.setSizeHint(widget.minimumSizeHint())
             self.sidebar_list.addItem(item)
             self.sidebar_list.setItemWidget(item, widget)
@@ -516,14 +522,23 @@ class AdminWindow(QWidget):
 
     def _update_user_list(self, users: list) -> None:
         normalized = []
+        self.user_profiles = {}
 
         for user in users:
             if isinstance(user, dict):
                 username = user.get("username", "")
                 if username:
                     normalized.append(username)
+                    self.user_profiles[username.lower()] = user
+
             elif isinstance(user, str):
                 normalized.append(user)
+                self.user_profiles[user.lower()] = {
+                    "username": user,
+                    "online": True,
+                    "is_admin": False,
+                    "profile_picture": "default_avatar.png",
+                }
 
         self.online_users = normalized
         self._rebuild_sidebar_list()
@@ -548,24 +563,35 @@ class AdminWindow(QWidget):
 
     def _make_admin_user_row(self, username: str) -> QWidget:
         row = QWidget()
-        row.setMinimumHeight(46)
+        row.setMinimumHeight(44)
 
         layout = QHBoxLayout(row)
         layout.setContentsMargins(2, 4, 2, 4)
         layout.setSpacing(8)
 
-        dot = QLabel("●")
-        dot.setObjectName("adminOnlineDot")
+        profile = self.user_profiles.get(username.lower(), {})
+        avatar_path = profile.get("profile_picture", "")
+
+        avatar = QLabel()
+        avatar.setFixedSize(34, 34)
+        avatar.setAlignment(Qt.AlignCenter)
+
+        if avatar_path and os.path.exists(avatar_path):
+            avatar.setPixmap(self._make_round_pixmap(avatar_path, 34))
+        else:
+            avatar.setText(username[:1].upper())
 
         name = QLabel(f"{username} (You)" if username == self.username else username)
         name.setObjectName("adminUserName")
 
-        layout.addWidget(dot)
+        layout.addWidget(avatar)
         layout.addWidget(name, 1)
 
         if username == self.username:
             tag = QLabel("You")
             tag.setObjectName("adminSelfTag")
+            tag.setAlignment(Qt.AlignCenter)
+            tag.setFixedSize(123, 34)
             layout.addWidget(tag)
         else:
             kick = QPushButton("Kick")
@@ -893,6 +919,38 @@ class AdminWindow(QWidget):
         self.admin_avatar.setText("")
         self.admin_avatar.setPixmap(rounded)
 
+
+    def _make_round_pixmap(self, image_path: str, size: int) -> QPixmap:
+        original = QPixmap(image_path)
+
+        if original.isNull():
+            return QPixmap()
+
+        scaled = original.scaled(
+            size,
+            size,
+            Qt.KeepAspectRatioByExpanding,
+            Qt.SmoothTransformation,
+        )
+
+        x = (scaled.width() - size) // 2
+        y = (scaled.height() - size) // 2
+        cropped = scaled.copy(x, y, size, size)
+
+        rounded = QPixmap(size, size)
+        rounded.fill(Qt.transparent)
+
+        painter = QPainter(rounded)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        path = QPainterPath()
+        path.addEllipse(0, 0, size, size)
+
+        painter.setClipPath(path)
+        painter.drawPixmap(0, 0, cropped)
+        painter.end()
+
+        return rounded
 
     def _open_profile_dialog(self) -> None:
         dialog = ProfileDialog(self.username, self)

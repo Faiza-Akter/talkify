@@ -32,9 +32,17 @@ class RoomManager:
             self.rooms[room_name].discard(username)
 
     def remove_user_from_all_rooms(self, username):
-        """Remove user from every room."""
-        for room_users in self.rooms.values():
-            room_users.discard(username)
+        empty_rooms = []
+
+        for room, users in self.rooms.items():
+            if username in users:
+                users.remove(username)
+
+            if not users and room != DEFAULT_ROOM:
+                empty_rooms.append(room)
+
+        for room in empty_rooms:
+            del self.rooms[room]
 
     def get_users_in_room(self, room_name):
         """Return all users in a room."""

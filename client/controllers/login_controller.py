@@ -1,4 +1,5 @@
 from client.ui.chat_window import ChatWindow
+from client.ui.admin_window import AdminWindow
 
 
 class LoginController:
@@ -14,12 +15,24 @@ class LoginController:
         self.network_client.connect_to_server(username)
 
     def _handle_login_success(self, packet: dict) -> None:
-        self.chat_window = ChatWindow(
-            network_client=self.network_client,
-            username=self.network_client.username or 'User',
-            initial_room=packet.get('room', 'General'),
-            is_admin=packet.get("is_admin", False)
-        )
+        username = self.network_client.username or "User"
+        initial_room = packet.get("room", "General")
+        is_admin = packet.get("is_admin", False)
+
+        if is_admin:
+            self.chat_window = AdminWindow(
+                network_client=self.network_client,
+                username=username,
+                initial_room=initial_room,
+            )
+        else:
+            self.chat_window = ChatWindow(
+                network_client=self.network_client,
+                username=username,
+                initial_room=initial_room,
+                is_admin=False,
+            )
+
         self.chat_window.show()
         self.chat_window.raise_()
         self.chat_window.activateWindow()

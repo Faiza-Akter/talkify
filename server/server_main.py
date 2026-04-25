@@ -16,9 +16,9 @@ class ChatServer:
         self.server_socket = None
         self.is_running = False
 
-        self.clients = {}               # username -> socket
-        self.client_usernames = {}      # socket -> username
-        self.connected_profiles = {}    # username -> profile dict
+        self.clients = {}
+        self.client_usernames = {}
+        self.connected_profiles = {}
 
         self.lock = threading.Lock()
         self.room_manager = RoomManager()
@@ -43,7 +43,7 @@ class ChatServer:
                 thread = threading.Thread(
                     target=self.handle_client,
                     args=(client_socket, client_address),
-                    daemon=True
+                    daemon=True,
                 )
                 thread.start()
 
@@ -58,6 +58,7 @@ class ChatServer:
 
     def stop(self):
         self.is_running = False
+
         with self.lock:
             sockets_to_close = list(self.client_usernames.keys())
             self.clients.clear()
@@ -79,7 +80,6 @@ class ChatServer:
         print("[SERVER CLOSED]")
 
     def handle_client(self, client_socket, client_address):
-        username = None
         text_buffer = ""
 
         try:
@@ -95,63 +95,7 @@ class ChatServer:
                     packet_type = packet.get("type")
 
                     if packet_type == "login":
-                        if client_socket in self.client_usernames:
-                            self.send_error(client_socket, "You are already logged in.")
-                            continue
-
-                        requested_username = packet.get("sender", "").strip()
-                        if not requested_username:
-                            self.send_login_failed(client_socket, "Username cannot be empty.")
-                            continue
-
-                        if self.database.is_user_banned(requested_username):
-                            self.send_login_failed(client_socket, "You are banned from the server.")
-                            continue
-
-                        self.database.ensure_user_exists(requested_username)
-                        profile = self.database.get_user_profile(requested_username) or {
-                            "username": requested_username,
-                            "is_admin": False,
-                            "profile_picture": "default_avatar.png"
-                        }
-
-                        with self.lock:
-                            if requested_username in self.clients:
-                                self.send_login_failed(client_socket, "Username already taken.")
-                                continue
-
-                            self.clients[requested_username] = client_socket
-                            self.client_usernames[client_socket] = requested_username
-                            self.connected_profiles[requested_username] = profile
-
-                        username = requested_username
-                        self.room_manager.add_user_to_room(username, DEFAULT_ROOM)
-
-                        success_packet = create_packet(
-                            packet_type="login_success",
-                            sender="server",
-                            message=f"Welcome, {username}!",
-                            extra={
-                                "room": DEFAULT_ROOM,
-                                "is_admin": bool(profile.get("is_admin")),
-                                "profile_picture": profile.get("profile_picture", "default_avatar.png")
-                            }
-                        )
-                        self.send_packet(client_socket, success_packet)
-
-                        print(f"[LOGIN] {username} joined from {client_address}")
-
-                        self.broadcast(
-                            create_packet(
-                                packet_type="join_notice",
-                                sender="server",
-                                message=f"{username} joined the chat."
-                            ),
-                            exclude_socket=client_socket
-                        )
-
-                        self.send_user_list()
-                        self.send_room_list()
+                        self.handle_login(client_socket, client_address, packet)
 
                     elif packet_type == "public_message":
                         self.handle_public_message(client_socket, packet)
@@ -179,9 +123,12 @@ class ChatServer:
 
                     elif packet_type == "ban":
                         self.handle_ban(client_socket, packet)
-                    
+
                     elif packet_type == "delete_message":
                         self.handle_delete_message(client_socket, packet)
+
+                    elif packet_type == "request_admin_data":
+                        self.handle_request_admin_data(client_socket, packet)
 
                     else:
                         self.send_error(client_socket, f"Unknown packet type: {packet_type}")
@@ -193,11 +140,79 @@ class ChatServer:
         finally:
             self.remove_client(client_socket)
 
+    def handle_login(self, client_socket, client_address, packet):
+        if client_socket in self.client_usernames:
+            self.send_error(client_socket, "You are already logged in.")
+            return
+
+        requested_username = packet.get("sender", "").strip()
+        if not requested_username:
+            self.send_login_failed(client_socket, "Username cannot be empty.")
+            return
+
+        try:
+            if self.database.is_user_banned(requested_username):
+                self.send_login_failed(client_socket, "You are banned from the server.")
+                return
+
+            self.database.ensure_user_exists(requested_username)
+            profile = self.database.get_user_profile(requested_username) or {
+                "username": requested_username,
+                "is_admin": False,
+                "profile_picture": "default_avatar.png",
+            }
+
+        except Exception as error:
+            self.send_login_failed(client_socket, f"Database error: {error}")
+            return
+
+        with self.lock:
+            if requested_username in self.clients:
+                self.send_login_failed(client_socket, "Username already taken.")
+                return
+
+            self.clients[requested_username] = client_socket
+            self.client_usernames[client_socket] = requested_username
+            self.connected_profiles[requested_username] = profile
+
+        self.room_manager.add_user_to_room(requested_username, DEFAULT_ROOM)
+
+        success_packet = create_packet(
+            packet_type="login_success",
+            sender="server",
+            message=f"Welcome, {requested_username}!",
+            extra={
+                "room": DEFAULT_ROOM,
+                "is_admin": bool(profile.get("is_admin")),
+                "profile_picture": profile.get("profile_picture", "default_avatar.png"),
+            },
+        )
+        self.send_packet(client_socket, success_packet)
+
+        print(f"[LOGIN] {requested_username} joined from {client_address}")
+
+        self.broadcast(
+            create_packet(
+                packet_type="join_notice",
+                sender="server",
+                message=f"{requested_username} joined the chat.",
+            ),
+            exclude_socket=client_socket,
+        )
+
+        self.send_user_list()
+        self.send_room_list()
+        self.send_admin_data_to_admins()
+
     def require_login(self, client_socket):
         if client_socket not in self.client_usernames:
             self.send_error(client_socket, "You must log in first.")
             return None
         return self.client_usernames[client_socket]
+
+    def is_connected_admin(self, username):
+        profile = self.connected_profiles.get(username, {})
+        return bool(profile.get("is_admin"))
 
     def get_profile_picture(self, username):
         profile = self.connected_profiles.get(username, {})
@@ -218,7 +233,7 @@ class ChatServer:
             sender=username,
             content=content,
             reply_to=reply_to,
-            sender_profile_picture=self.get_profile_picture(username)
+            sender_profile_picture=self.get_profile_picture(username),
         )
 
         message_packet = create_packet(
@@ -229,13 +244,14 @@ class ChatServer:
                 "message_id": message["message_id"],
                 "status": "sent",
                 "reply_to": reply_to,
-                "sender_profile_picture": message["sender_profile_picture"]
-            }
+                "sender_profile_picture": message["sender_profile_picture"],
+            },
         )
 
         self.broadcast(message_packet)
         self.send_status_to_sender(username, message["message_id"], "sent", "public")
         print(f"[PUBLIC] {username}: {content}")
+        self.send_admin_data_to_admins()
 
     def handle_private_message(self, client_socket, packet):
         username = self.require_login(client_socket)
@@ -264,7 +280,7 @@ class ChatServer:
             target=target_username,
             content=content,
             reply_to=reply_to,
-            sender_profile_picture=self.get_profile_picture(username)
+            sender_profile_picture=self.get_profile_picture(username),
         )
 
         msg_packet = create_packet(
@@ -276,16 +292,23 @@ class ChatServer:
                 "message_id": message["message_id"],
                 "status": "sent",
                 "reply_to": reply_to,
-                "sender_profile_picture": message["sender_profile_picture"]
-            }
+                "sender_profile_picture": message["sender_profile_picture"],
+            },
         )
 
         self.send_packet(target_socket, msg_packet)
         if sender_socket and sender_socket != target_socket:
             self.send_packet(sender_socket, msg_packet)
 
-        self.send_status_to_sender(username, message["message_id"], "sent", "private", target=target_username)
+        self.send_status_to_sender(
+            username,
+            message["message_id"],
+            "sent",
+            "private",
+            target=target_username,
+        )
         print(f"[PRIVATE] {username} -> {target_username}: {content}")
+        self.send_admin_data_to_admins()
 
     def handle_room_message(self, client_socket, packet):
         username = self.require_login(client_socket)
@@ -310,7 +333,7 @@ class ChatServer:
             room=room_name,
             content=content,
             reply_to=reply_to,
-            sender_profile_picture=self.get_profile_picture(username)
+            sender_profile_picture=self.get_profile_picture(username),
         )
 
         room_packet = create_packet(
@@ -322,13 +345,20 @@ class ChatServer:
                 "message_id": message["message_id"],
                 "status": "sent",
                 "reply_to": reply_to,
-                "sender_profile_picture": message["sender_profile_picture"]
-            }
+                "sender_profile_picture": message["sender_profile_picture"],
+            },
         )
 
         self.broadcast_to_room(room_name, room_packet)
-        self.send_status_to_sender(username, message["message_id"], "sent", "room", room=room_name)
+        self.send_status_to_sender(
+            username,
+            message["message_id"],
+            "sent",
+            "room",
+            room=room_name,
+        )
         print(f"[ROOM:{room_name}] {username}: {content}")
+        self.send_admin_data_to_admins()
 
     def handle_join_room(self, client_socket, packet):
         username = self.require_login(client_socket)
@@ -346,10 +376,11 @@ class ChatServer:
             packet_type="room_joined",
             sender="server",
             room=room_name,
-            message=f"{username} joined room '{room_name}'."
+            message=f"{username} joined room '{room_name}'.",
         )
         self.send_packet(client_socket, joined_packet)
         self.send_room_list()
+        self.send_admin_data_to_admins()
 
     def handle_typing(self, client_socket, packet):
         username = self.require_login(client_socket)
@@ -368,8 +399,8 @@ class ChatServer:
             room=room,
             extra={
                 "target_mode": target_mode,
-                "is_typing": is_typing
-            }
+                "is_typing": is_typing,
+            },
         )
 
         if target_mode == "private" and target:
@@ -407,8 +438,8 @@ class ChatServer:
                 "delivered_to": message["delivered_to"],
                 "scope": message["scope"],
                 "target": message.get("target"),
-                "room": message.get("room")
-            }
+                "room": message.get("room"),
+            },
         )
         self.send_to_username(sender_username, status_packet)
 
@@ -422,7 +453,11 @@ class ChatServer:
             self.send_error(client_socket, "Profile picture path cannot be empty.")
             return
 
-        self.database.update_profile_picture(username, profile_picture)
+        try:
+            self.database.update_profile_picture(username, profile_picture)
+        except Exception:
+            pass
+
         with self.lock:
             if username in self.connected_profiles:
                 self.connected_profiles[username]["profile_picture"] = profile_picture
@@ -432,8 +467,8 @@ class ChatServer:
             sender="server",
             extra={
                 "username": username,
-                "profile_picture": profile_picture
-            }
+                "profile_picture": profile_picture,
+            },
         )
         self.broadcast(update_packet)
         self.send_user_list()
@@ -442,24 +477,111 @@ class ChatServer:
         admin_username = self.require_login(client_socket)
         if not admin_username:
             return
+
         target_username = packet.get("target", "").strip()
         success, message = self.admin_manager.kick_user(admin_username, target_username)
-        self.send_packet(client_socket, create_packet("admin_response", sender="server", message=message, extra={"success": success}))
+
+        self.send_packet(
+            client_socket,
+            create_packet(
+                "admin_response",
+                sender="server",
+                message=message,
+                extra={"success": success},
+            ),
+        )
+        self.send_admin_data_to_admins()
 
     def handle_ban(self, client_socket, packet):
         admin_username = self.require_login(client_socket)
         if not admin_username:
             return
+
         target_username = packet.get("target", "").strip()
         reason = packet.get("message", "").strip() or "No reason provided"
         success, message = self.admin_manager.ban_user(admin_username, target_username, reason)
-        self.send_packet(client_socket, create_packet("admin_response", sender="server", message=message, extra={"success": success}))
+
+        self.send_packet(
+            client_socket,
+            create_packet(
+                "admin_response",
+                sender="server",
+                message=message,
+                extra={"success": success},
+            ),
+        )
+        self.send_admin_data_to_admins()
+
+    def handle_delete_message(self, client_socket, packet):
+        username = self.require_login(client_socket)
+        if not username:
+            return
+
+        message_id = packet.get("message_id", "")
+        message = self.message_store.get_message(message_id)
+
+        if not message:
+            return
+
+        if message["sender"] != username:
+            return
+
+        delete_packet = create_packet(
+            packet_type="delete_message",
+            sender="server",
+            extra={"message_id": message_id},
+        )
+
+        self.broadcast(delete_packet)
+        self.send_admin_data_to_admins()
+
+    def handle_request_admin_data(self, client_socket, packet):
+        username = self.require_login(client_socket)
+        if not username:
+            return
+
+        if not self.is_connected_admin(username):
+            self.send_error(client_socket, "You are not allowed to access admin data.")
+            return
+
+        try:
+            banned_users = self.database.get_banned_users()
+        except Exception:
+            banned_users = []
+
+        stats = {
+            "online_users": len(self.clients),
+            "active_rooms": len(self.room_manager.get_all_rooms()),
+            "messages_today": (
+                self.message_store.count_messages_today()
+                if hasattr(self.message_store, "count_messages_today")
+                else len(self.message_store.messages)
+            ),
+        }
+
+        self.send_packet(
+            client_socket,
+            create_packet(
+                packet_type="admin_data",
+                sender="server",
+                extra={
+                    "banned_users": banned_users,
+                    "stats": stats,
+                },
+            ),
+        )
 
     def send_login_failed(self, client_socket, message):
-        self.send_packet(client_socket, create_packet("login_failed", sender="server", message=message))
+        self.send_packet(
+            client_socket,
+            create_packet("login_failed", sender="server", message=message),
+        )
 
     def send_error(self, client_socket, message):
-        self.send_packet(client_socket, create_packet("error", sender="server", message=message))
+        self.send_packet(
+            client_socket,
+            create_packet("error", sender="server", message=message),
+        )
 
     def send_packet(self, client_socket, packet):
         try:
@@ -470,6 +592,7 @@ class ChatServer:
     def send_to_username(self, username, packet):
         with self.lock:
             sock = self.clients.get(username)
+
         if sock:
             self.send_packet(sock, packet)
 
@@ -482,16 +605,22 @@ class ChatServer:
                 "status": status,
                 "scope": scope,
                 "target": target,
-                "room": room
-            }
+                "room": room,
+            },
         )
         self.send_to_username(username, packet)
 
     def remove_client(self, client_socket):
         with self.lock:
             username = self.client_usernames.pop(client_socket, None)
+
+            is_admin = False
+            if username in self.connected_profiles:
+                is_admin = bool(self.connected_profiles[username].get("is_admin"))
+
             if username in self.clients:
                 del self.clients[username]
+
             if username in self.connected_profiles:
                 del self.connected_profiles[username]
 
@@ -502,19 +631,32 @@ class ChatServer:
 
         if username:
             self.room_manager.remove_user_from_all_rooms(username)
-            self.broadcast(create_packet("leave_notice", sender="server", message=f"{username} left the chat."))
+            self.broadcast(
+                create_packet(
+                    "leave_notice",
+                    sender="server",
+                    message=f"{username} left the chat.",
+                )
+            )
             self.send_user_list()
             self.send_room_list()
+            self.send_admin_data_to_admins()
 
+        if is_admin:
+            print("[ADMIN LEFT] Resetting messages")
+            self.message_store.reset_messages()
     def broadcast(self, packet, exclude_socket=None):
         encoded = encode_packet(packet)
+
         with self.lock:
             recipients = list(self.clients.values())
 
         dead_sockets = []
+
         for sock in recipients:
             if sock == exclude_socket:
                 continue
+
             try:
                 sock.sendall(encoded)
             except Exception:
@@ -532,9 +674,11 @@ class ChatServer:
             for username in room_users:
                 if exclude_username and username == exclude_username:
                     continue
+
                 sock = self.clients.get(username)
                 if not sock:
                     continue
+
                 try:
                     sock.sendall(encoded)
                 except Exception:
@@ -550,38 +694,36 @@ class ChatServer:
                     "username": username,
                     "online": True,
                     "is_admin": bool(profile.get("is_admin")),
-                    "profile_picture": profile.get("profile_picture", "default_avatar.png")
+                    "profile_picture": profile.get("profile_picture", "default_avatar.png"),
                 }
                 for username, profile in self.connected_profiles.items()
             ]
 
-        self.broadcast(create_packet("user_list", sender="server", extra={"users": users}))
+        self.broadcast(
+            create_packet(
+                "user_list",
+                sender="server",
+                extra={"users": users},
+            )
+        )
 
     def send_room_list(self):
         rooms = self.room_manager.get_all_rooms()
-        self.broadcast(create_packet("room_list", sender="server", extra={"rooms": rooms}))
-
-
-    def handle_delete_message(self, client_socket, packet):
-        username = self.require_login(client_socket)
-        if not username:
-            return
-
-        message_id = packet.get("message_id")
-
-        message = self.message_store.get_message(message_id)
-        if not message:
-            return
-
-        # Only sender can delete
-        if message["sender"] != username:
-            return
-
-        # Broadcast delete to everyone
-        delete_packet = create_packet(
-            packet_type="delete_message",
-            sender="server",
-            extra={"message_id": message_id}
+        self.broadcast(
+            create_packet(
+                "room_list",
+                sender="server",
+                extra={"rooms": rooms},
+            )
         )
 
-        self.broadcast(delete_packet)
+    def send_admin_data_to_admins(self):
+        with self.lock:
+            admin_sockets = [
+                sock
+                for username, sock in self.clients.items()
+                if bool(self.connected_profiles.get(username, {}).get("is_admin"))
+            ]
+
+        for sock in admin_sockets:
+            self.handle_request_admin_data(sock, {})

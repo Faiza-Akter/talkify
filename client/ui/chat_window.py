@@ -97,6 +97,7 @@ class ChatWindow(QWidget):
         # -------------------------------
         self.conversations: Dict[str, ConversationMeta] = {}
         self.online_users: list[str] = []
+        self.user_profiles: Dict[str, dict] = {}
         self.available_rooms: list[str] = []
         self.message_widgets: Dict[str, QWidget] = {}
 
@@ -689,13 +690,14 @@ class ChatWindow(QWidget):
         elif self.current_filter == 'rooms':
             items = [
                 ConversationMeta(
-                    key=f'room:{room.lower()}',
-                    mode='room',
-                    name=room,
-                    subtitle='Room conversation',
-                    trailing='Room',
+                    key=f"user:{user.lower()}",
+                    mode="private",
+                    name=user,
+                    subtitle="Direct message",
+                    trailing="Online",
+                    online=True,
                 )
-                for room in self.available_rooms
+                for user in self.online_users
             ]
 
         else:
@@ -720,13 +722,17 @@ class ChatWindow(QWidget):
             item = QListWidgetItem()
             item.setData(Qt.UserRole, meta)
 
+            profile = self.user_profiles.get(meta.name.lower(), {})
+            avatar_path = profile.get("profile_picture", "")
+
             widget = SidebarItem(
                 title=meta.name,
                 subtitle=meta.subtitle,
-                trailing='',
+                trailing="",
                 avatar_text=meta.name[:1],
                 accent=meta.accent,
                 online=False,
+                avatar_path=avatar_path,
             )
 
             item.setSizeHint(widget.sizeHint())
@@ -1247,20 +1253,28 @@ class ChatWindow(QWidget):
 
     def _update_user_list(self, users: list) -> None:
         normalized_users = []
+        self.user_profiles = {}
 
         for user in users:
             if isinstance(user, dict):
-                username = user.get('username', '')
+                username = user.get("username", "")
 
                 if username:
                     normalized_users.append(username)
+                    self.user_profiles[username.lower()] = user
 
             elif isinstance(user, str):
                 normalized_users.append(user)
+                self.user_profiles[user.lower()] = {
+                    "username": user,
+                    "online": True,
+                    "is_admin": False,
+                    "profile_picture": "default_avatar.png",
+                }
 
         self.online_users = normalized_users
         self.user_status_label.setText(
-            f'you are online · {len(normalized_users)} users connected'
+            f"you are online · {len(normalized_users)} users connected"
         )
 
         self._rebuild_sidebar()
@@ -1360,16 +1374,31 @@ class ChatWindow(QWidget):
     # =====================================================
 
     def _on_profile_updated(self, packet: dict) -> None:
-        updated_user = packet.get('sender') or packet.get('username')
-        display_name = packet.get('display_name')
+        updated_user = packet.get("username") or packet.get("sender")
+        display_name = packet.get("display_name")
+        profile_picture = packet.get("profile_picture", "")
 
         if not updated_user:
             return
 
-        if updated_user == self.username and display_name:
-            self.local_display_name = display_name
-            self.user_name_label.setText(display_name)
-            self.user_avatar.setText(display_name[:1].upper())
+        key = updated_user.lower()
+
+        current_profile = self.user_profiles.get(key, {"username": updated_user})
+        if profile_picture:
+            current_profile["profile_picture"] = profile_picture
+        if display_name:
+            current_profile["display_name"] = display_name
+
+        self.user_profiles[key] = current_profile
+
+        if updated_user == self.username:
+            if display_name:
+                self.local_display_name = display_name
+                self.user_name_label.setText(display_name)
+                self.user_avatar.setText(display_name[:1].upper())
+
+            if profile_picture:
+                self._apply_profile_image(profile_picture)
 
         self._rebuild_sidebar()
 

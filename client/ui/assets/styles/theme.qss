@@ -1,246 +1,569 @@
+/* =========================================================
+   01. GLOBAL BASE STYLES
+   ========================================================= */
+
 QWidget {
-    background: #F7F9FC;
-    color: #26425A;
     font-family: "Segoe UI";
+    font-size: 14px;
+    color: #E7E6F6;
+}
+
+QLabel {
+    background: transparent;
+}
+
+#appRoot {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 1,
+        stop: 0 #081222,
+        stop: 0.4 #0B1F3A,
+        stop: 1 #122949
+    );
+}
+
+
+/* =========================================================
+   02. GLOBAL INPUT FIELDS
+   ========================================================= */
+
+QLineEdit {
+    background: rgba(11, 31, 58, 0.54);
+    color: #F5F7FF;
+    border: 1px solid rgba(134, 168, 207, 0.26);
+    border-radius: 14px;
+    padding: 8px 14px;
+    selection-background-color: #C38EB4;
+}
+
+QLineEdit:focus {
+    border: 1px solid rgba(195, 142, 180, 0.72);
+}
+
+QLineEdit#sidebarSearch,
+QLineEdit#messageInput {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: #F5F7FF;
+}
+
+QLineEdit#sidebarSearch {
+    padding: 2px 12px;
+    min-height: 26px;
+    max-height: 30px;
+    border-radius: 11px;
     font-size: 14px;
 }
 
-QLineEdit, QTextEdit, QListWidget {
-    background: #FFFFFF;
-    border: 1px solid #DDE7F3;
-    border-radius: 16px;
-    padding: 10px 12px;
-    selection-background-color: #86A8CF;
-    selection-color: white;
-}
 
-QTextEdit {
-    padding-top: 12px;
-}
+/* =========================================================
+   03. GLOBAL BUTTONS
+   ========================================================= */
 
 QPushButton {
-    background: #E9D4E0;
-    color: #26425A;
-    border: none;
-    border-radius: 14px;
-    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #F4F6FF;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 10px 14px;
     font-weight: 700;
 }
 
 QPushButton:hover {
-    background: #DFC0D1;
+    background: rgba(255, 255, 255, 0.14);
 }
 
-QPushButton:pressed {
-    background: #C38EB4;
-    color: white;
+QPushButton:checked {
+    background: rgba(195, 142, 180, 0.24);
+    border: 1px solid rgba(195, 142, 180, 0.48);
 }
 
 QPushButton#primaryButton {
     background: qlineargradient(
-        x1:0, y1:0, x2:1, y2:0,
-        stop:0 #86A8CF,
-        stop:1 #C38EB4
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0 #86A8CF,
+        stop: 1 #C38EB4
     );
-    color: white;
+    color: #FFFFFF;
+    border: none;
     font-weight: 800;
-    padding: 12px 18px;
+    font-size: 18px;
+    border-radius: 12px;
+}
+QPushButton#primaryButton:hover {
+    background: #A5C0DD;
 }
 
-QPushButton#primaryButton:hover {
-    background: #7E9FC7;
+QPushButton#dangerButton {
+    background: rgba(195, 142, 180, 0.20);
+    color: #FFFFFF;
+    border: 1px solid rgba(195, 142, 180, 0.45);
+    border-radius: 10px;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 800;
 }
+
+QPushButton#dangerButton:hover {
+    background: rgba(195, 142, 180, 0.32);
+}
+
+QPushButton#filterButton {
+    background: rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.86);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-weight: 800;
+    min-height: 30px;
+    max-height: 42px;
+}
+
+QPushButton#filterButton:hover {
+    background: rgba(255,255,255,0.16);
+    color: #FFFFFF;
+}
+
+QPushButton#filterButton:checked {
+    background: rgba(195,142,180,0.32);
+    color: #FFFFFF;
+    border: 1px solid rgba(195,142,180,0.65);
+}
+
+QToolButton#ghostToolButton,
+QPushButton#ghostToolButton {
+    background: rgba(255,255,255,0.10);
+    color: #EAF1FF;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 9px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+QToolButton#ghostToolButton:hover,
+QPushButton#ghostToolButton:hover {
+    background: rgba(134,168,207,0.24);
+    border: 1px solid rgba(134,168,207,0.45);
+    color: #FFFFFF;
+}
+
+QToolButton#ghostToolButton:pressed,
+QPushButton#ghostToolButton:pressed {
+    background: rgba(195,142,180,0.32);
+}
+
+QToolButton#roundToolButton {
+    background: rgba(255,255,255,0.08);
+    color: #E8EAFA;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 26px;
+    min-width: 52px;
+    min-height: 52px;
+    max-width: 52px;
+    max-height: 52px;
+    font-size: 24px;
+}
+
+QToolButton#roundToolButton:hover {
+    background: rgba(255,255,255,0.14);
+}
+
+QPushButton#emojiButton {
+    background: rgba(255,255,255,0.08);
+    border-radius: 9px;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 0;
+    font-size: 18px;
+}
+
+
+QToolButton#sidebarToggleButton {
+    background: rgba(255, 255, 255, 0.10);
+    color: #EAF1FF;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+QToolButton#sidebarToggleButton:hover {
+    background: rgba(134, 168, 207, 0.24);
+    border: 1px solid rgba(134, 168, 207, 0.45);
+    color: #FFFFFF;
+}
+
+QToolButton#sidebarToggleButton {
+    background: rgba(255,255,255,0.10);
+    color: #EAF1FF;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+QToolButton#sidebarToggleButton:hover {
+    background: rgba(134,168,207,0.24);
+    border: 1px solid rgba(134,168,207,0.45);
+}
+
+/* =========================================================
+   04. SPLASH SCREEN
+   ========================================================= */
 
 QFrame#splashCard {
-    background: qlineargradient(
-        x1:0, y1:0, x2:1, y2:1,
-        stop:0 #EEF4FB,
-        stop:1 #F7EAF1
-    );
-    border-radius: 34px;
-    border: 1px solid #E3EAF2;
+    background: rgba(15, 26, 46, 0.74);
+    border: 1px solid rgba(225, 203, 215, 0.18);
+    border-radius: 24px;
 }
 
 QLabel#splashTitle {
-    color: #0B1F3A;
-    font-size: 38px;
-    font-weight: 900;
+    color: white;
+    font-size: 40px;
+    font-weight: 800;
 }
 
 QLabel#splashSubtitle {
-    color: #5E748B;
+    color: #C8D4E6;
     font-size: 16px;
-    font-weight: 500;
 }
 
 QLabel#splashFooter {
-    color: #7A8EA3;
+    color: #9DB3D1;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
-QFrame#authHeroPanel {
+
+/* =========================================================
+   05. LOGIN WINDOW
+   ========================================================= */
+
+QFrame#loginShell {
+    background: rgba(10, 20, 37, 0.56);
+    border: 1px solid rgba(225, 203, 215, 0.12);
+    border-radius: 28px;
+}
+
+QFrame#loginHero {
+    border-top-left-radius: 28px;
+    border-bottom-left-radius: 28px;
     background: qlineargradient(
-        x1:0, y1:0, x2:1, y2:1,
-        stop:0 #EAF1F8,
-        stop:1 #F6EAF1
+        x1: 0, y1: 0, x2: 1, y2: 1,
+        stop: 0 #0B1F3A,
+        stop: 0.4 #26425A,
+        stop: 0.75 #5E3B82,
+        stop: 1 #8A3D74
     );
-    border-radius: 30px;
-    border: 1px solid #E3EAF2;
 }
 
-QFrame#authCard {
-    background: #FFFFFF;
-    border-radius: 30px;
-    border: 1px solid #E3EAF2;
+QFrame#loginFormPanel {
+    background: rgba(8, 18, 34, 0.72);
+    border-top-right-radius: 28px;
+    border-bottom-right-radius: 28px;
 }
 
-QLabel#authBadge {
-    color: #0B1F3A;
+QLabel#loginBadge {
+    color: rgba(255,255,255,0.86);
     font-size: 12px;
-    font-weight: 900;
-    letter-spacing: 2px;
+    font-weight: 700;
+    letter-spacing: 1px;
 }
 
-QLabel#authHeadline {
-    color: #0B1F3A;
-    font-size: 36px;
-    font-weight: 900;
-    line-height: 1.3;
+QLabel#loginHeroTitle {
+    color: white;
+    font-size: 38px;
+    font-weight: 750;
+    line-height: 1.12;
 }
 
-QLabel#authSubtitle, QLabel#authFormSubtitle {
-    color: #5B728A;
+QLabel#loginHeroText,
+QLabel#featurePillText {
+    color: #E6EAF7;
     font-size: 15px;
-    line-height: 1.6;
+    line-height: 1.45;
 }
 
-QLabel#authTitle {
-    color: #0B1F3A;
-    font-size: 26px;
-    font-weight: 900;
+QFrame#featureGlassCard,
+QFrame#loginCard,
+QFrame#tinyFeatureGrid {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(225, 203, 215, 0.12);
+    border-radius: 18px;
 }
 
-QLabel#authError {
-    color: #B94A67;
+QLabel#loginBrandText {
+    color: #FFFFFF;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+QLabel#loginHeading {
+    color: white;
+    font-size: 40px;
+    font-weight: 800;
+}
+
+QLabel#loginSubheading,
+QLabel#helperText,
+QLabel#loginFooter,
+QLabel#tinyFeatureText {
+    color: #BFCBE2;
+    font-size: 14px;
+}
+
+QLabel#formLabel {
+    color: #E8ECF7;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+QLabel#formError {
+    color: #FFB4C8;
     font-size: 13px;
     font-weight: 700;
 }
 
-QLabel#authFooterNote {
-    color: #7A8EA3;
-    font-size: 12px;
+
+/* =========================================================
+   06. MAIN CHAT LAYOUT
+   ========================================================= */
+
+QFrame#sidebarPanel,
+QFrame#mainPanel {
+    border-radius: 26px;
+    border: 1px solid rgba(225, 203, 215, 0.10);
+}
+
+QFrame#sidebarPanel {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 0, y2: 1,
+        stop: 0 #132544,
+        stop: 0.45 #18315A,
+        stop: 1 #10203A
+    );
+}
+
+QFrame#mainPanel {
+    background: rgba(8, 18, 34, 0.56);
+}
+
+
+/* =========================================================
+   07. SIDEBAR BRANDING
+   ========================================================= */
+
+QLabel#sidebarBrandSubtitle {
+    color: #B8C7DE;
+    font-size: 15px;
+    margin-top: 0px;
+    padding-top: 0px;
+    font-weight: 500;
+}
+
+QLabel#sidebarSectionTitle {
+    color: #F4F6FF;
+    font-size: 16px;
     font-weight: 700;
 }
 
-QFrame#palettePreviewCard,
-QFrame#miniStatCard {
-    background: rgba(255, 255, 255, 0.72);
-    border-radius: 20px;
-    border: 1px solid #E3EAF2;
+
+/* =========================================================
+   08. SIDEBAR LISTS
+   ========================================================= */
+
+QListWidget#sidebarList {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 8px;
+    outline: none;
 }
 
-QLabel#miniStatTitle {
-    color: #6B7E92;
-    font-size: 12px;
-    font-weight: 700;
+QListWidget#sidebarList::item {
+    background: transparent;
+    border: none;
+    padding: 0px;
+    margin: 0px 14px;
+    border-radius: 12px;
 }
 
-QLabel#miniStatValue {
-    color: #0B1F3A;
+QListWidget#sidebarList::item:selected {
+    background: rgba(134, 168, 207, 0.18);
+    border-radius: 12px;
+}
+
+QListWidget#sidebarList::item:hover {
+    background: rgba(134, 168, 207, 0.10);
+    border-radius: 12px;
+}
+
+QFrame#sidebarAvatar,
+QFrame#sidebarAvatarAccent {
+    border-radius: 21px;
+}
+
+QFrame#sidebarAvatar {
+    background: rgba(255,255,255,0.10);
+}
+
+QFrame#sidebarAvatarAccent {
+    background: rgba(134, 168, 207, 0.26);
+    border: 1px solid rgba(225, 203, 215, 0.14);
+}
+
+QLabel#sidebarAvatarText {
+    color: #F8FBFF;
     font-size: 16px;
     font-weight: 800;
 }
 
-QFrame#sidebarPanel {
-    background: #FFFFFF;
-    border-radius: 28px;
-    border: 1px solid #E3EAF2;
-}
-
-QFrame#brandCard {
-    background: qlineargradient(
-        x1:0, y1:0, x2:1, y2:0,
-        stop:0 #EEF4FB,
-        stop:1 #F7EDF3
-    );
-    border-radius: 22px;
-    border: 1px solid #E3EAF2;
-}
-
-QLabel#brandTitle {
-    color: #0B1F3A;
-    font-size: 24px;
-    font-weight: 900;
-}
-
-QLabel#brandSubtitle {
-    color: #6B7E92;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-QFrame#sectionCard {
-    background: #FCFDFE;
-    border-radius: 22px;
-    border: 1px solid #E3EAF2;
-}
-
-QLabel#sectionTitle {
-    color: #26425A;
+QLabel#sidebarItemTitle {
+    color: #FFFFFF;
     font-size: 15px;
+    font-weight: 700;
+}
+
+QLabel#sidebarItemSubtitle,
+QLabel#sidebarItemTrailing {
+    color: #B8C7DE;
+}
+
+QLabel#sidebarOnlineDot {
+    color: #9CFAB2;
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   09. BOTTOM USER CARD
+   ========================================================= */
+
+QFrame#sidebarUserCard {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 19px;
+}
+
+QLabel#bottomAvatar {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 1,
+        stop: 0 #86A8CF,
+        stop: 1 #C38EB4
+    );
+    color: #081222;
+    font-size: 20px;
     font-weight: 800;
-    margin-bottom: 6px;
+    border-radius: 26px;
+    min-width: 52px;
+    min-height: 52px;
+    max-width: 52px;
+    max-height: 52px;
 }
 
-QFrame#chatMainPanel {
-    background: transparent;
+QLabel#bottomUserName {
+    color: #FFFFFF;
+    font-weight: 800;
 }
 
-QFrame#chatTopbar {
-    background: #FFFFFF;
-    border: 1px solid #E3EAF2;
-    border-radius: 24px;
+QLabel#bottomUserStatus {
+    color: #B8C7DE;
+}
+
+
+/* =========================================================
+   10. CHAT HEADER
+   ========================================================= */
+
+QFrame#chatHeader {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 19px;
+}
+
+QLabel#targetBadge {
+    color: #AFC8E8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 
 QLabel#chatTitle {
-    color: #0B1F3A;
-    font-size: 26px;
-    font-weight: 900;
+    color: #FFFFFF;
+    font-size: 28px;
+    font-weight: 800;
 }
 
 QLabel#chatSubtitle {
-    color: #6E8094;
-    font-size: 13px;
-    font-weight: 600;
+    color: #B8C7DE;
+    font-size: 14px;
 }
 
-QLabel#statusChip {
-    background: #EAF4EC;
-    color: #3B7A57;
-    border: 1px solid #D5EADB;
-    border-radius: 14px;
-    padding: 7px 14px;
+QLabel#statusBadge {
+    background: rgba(156, 250, 178, 0.12);
+    border: 1px solid rgba(156, 250, 178, 0.18);
+    color: #A8F2BA;
+    border-radius: 12px;
+    padding: 0;
     font-size: 12px;
     font-weight: 800;
 }
 
-QScrollArea#chatScrollArea {
-    border: none;
+
+/* =========================================================
+   11. MESSAGE AREA / SURFACE
+   ========================================================= */
+
+QWidget#messagesSurface {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 19px;
+}
+
+QScrollArea#messagesScroll {
     background: transparent;
+    border: none;
 }
 
-QFrame#composerCard {
-    background: #FFFFFF;
-    border: 1px solid #E3EAF2;
-    border-radius: 24px;
-}
-
-QLabel#contextLabel {
-    color: #6A7E91;
-    font-size: 13px;
+QLabel#systemNotice {
+    color: #9DB3D1;
+    font-size: 12px;
     font-weight: 700;
+    padding: 8px 0;
 }
+
+
+/* =========================================================
+   12. COMPOSER / MESSAGE INPUT AREA
+   ========================================================= */
+
+QFrame#composerPanel {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 19px;
+}
+
+QLabel#contextMetaLabel,
+QLabel#contextLabel,
+QLabel#typingLabel {
+    color: #B8C7DE;
+}
+
+QLabel#replyChip,
+QLabel#replyBarText {
+    color: #D9E0EF;
+    font-size: 12px;
+}
+
+QFrame#replyBar {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 19px;
+}
+
+
+/* =========================================================
+   13. MESSAGE BUBBLES
+   ========================================================= */
 
 QFrame#messageBubbleOwn {
     background: qlineargradient(
@@ -248,99 +571,217 @@ QFrame#messageBubbleOwn {
         stop:0 #86A8CF,
         stop:1 #C38EB4
     );
-    border-radius: 22px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.12);
 }
 
 QFrame#messageBubbleOther {
-    background: #FFFFFF;
-    border: 1px solid #E3EAF2;
-    border-radius: 22px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 16px;
 }
 
-QLabel#messageSender {
+QLabel#messageSenderOwn {
+    color: #FFFFFF;
     font-size: 12px;
-    font-weight: 900;
-    color: #0B1F3A;
-}
-
-QLabel#messageText {
-    font-size: 14px;
-    color: #26425A;
-    line-height: 1.5;
-}
-
-QLabel#messageMeta {
-    font-size: 11px;
-    color: #5D7288;
-    font-weight: 700;
-}
-
-QLabel#systemNotice {
-    color: #7A8EA3;
-    font-size: 12px;
-    font-weight: 700;
-    margin: 8px 0;
-}
-
-QFrame#userAvatar {
-    background: qlineargradient(
-        x1:0, y1:0, x2:1, y2:1,
-        stop:0 #86A8CF,
-        stop:1 #C38EB4
-    );
-    border-radius: 19px;
-}
-
-QLabel#userAvatarText,
-QLabel#roomAvatarText {
-    color: white;
-    font-size: 14px;
-    font-weight: 900;
-}
-
-QLabel#userItemTitle,
-QLabel#roomItemTitle {
-    color: #0B1F3A;
-    font-size: 14px;
     font-weight: 800;
 }
 
-QLabel#userItemSubtitle,
-QLabel#roomItemSubtitle {
-    color: #6C8094;
+QLabel#messageSenderOther {
+    color: #FFFFFF;
     font-size: 12px;
+    font-weight: 800;
+}
+
+QLabel#messageText {
+    color: #FFFFFF;
+    font-size: 14px;
+}
+
+QLabel#messageMeta,
+QLabel#messageStatus {
+    color: rgba(255,255,255,0.70);
+    font-size: 11px;
     font-weight: 600;
 }
 
-QFrame#roomAvatar {
-    background: #EAF1F8;
-    border-radius: 19px;
-    border: 1px solid #D6E2EE;
+
+/* =========================================================
+   14. REPLY PREVIEW INSIDE MESSAGE BUBBLES
+   ========================================================= */
+
+QFrame#replyPreviewBox {
+    background: rgba(255,255,255,0.12);
+    border-left: 3px solid #C38EB4;
+    border-radius: 9px;
 }
 
-QListWidget {
-    outline: none;
+QLabel#replySenderLabel {
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
 }
 
-QListWidget::item {
+QLabel#replyTextLabel {
+    color: rgba(255,255,255,0.78);
+    font-size: 12px;
+}
+
+QLabel#replyHoverIcon {
+    background-color: rgba(255,255,255,0.08);
+    color: #C38EB4;
+    border-radius: 11px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QLabel#replyHoverIcon:hover {
+    background-color: rgba(195,142,180,0.25);
+    color: #ffffff;
+}
+
+/* =========================================================
+   15. OLD / FALLBACK BUBBLE STYLES
+   Keep only if older widgets still use these IDs.
+   ========================================================= */
+
+QFrame#ownBubble {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0 #4E6F9A,
+        stop: 1 #8D5F89
+    );
+    border-radius: 16px;
+}
+
+QFrame#incomingBubble {
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+}
+
+QLabel#bubbleSender {
+    color: #E1CBD7;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+QLabel#bubbleText {
+    color: #F7F8FE;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+QLabel#bubbleMeta {
+    color: #9FB2CF;
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   16. INFO CARDS / DIALOG TITLES
+   ========================================================= */
+
+QLabel#infoCardValue,
+QLabel#dialogTitle {
+    color: #FFFFFF;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   17. DIALOGS AND EMOJI PICKER
+   ========================================================= */
+
+QDialog#profileDialog,
+QDialog#roomDialog,
+QWidget#emojiPicker {
+    background: rgba(11, 31, 58, 0.96);
+    border: 1px solid rgba(225, 203, 215, 0.10);
+    border-radius: 16px;
+}
+
+
+/* =========================================================
+   18. CONTEXT MENU
+   ========================================================= */
+
+QMenu {
+    background: #111D33;
+    color: #EAF1FF;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 9px;
     padding: 6px;
-    border-radius: 14px;
-    margin: 4px 0;
 }
 
-QListWidget::item:selected {
-    background: #EEF4FB;
-    color: #0B1F3A;
+QMenu::item {
+    padding: 8px 20px;
+    border-radius: 7px;
 }
+
+QMenu::item:selected {
+    background: rgba(134,168,207,0.28);
+}
+
+
+/* =========================================================
+   19. SCROLLBARS
+   ========================================================= */
 
 QScrollBar:vertical {
-    width: 10px;
+    width: 7px;
     background: transparent;
     margin: 4px 0 4px 0;
 }
 
 QScrollBar::handle:vertical {
-    background: #CAD8E8;
-    min-height: 30px;
-    border-radius: 5px;
+    background: rgba(134, 168, 207, 0.34);
+    min-height: 20px;
+    border-radius: 4px;
+}
+
+
+/* =========================================================
+   20. MESSAGE BOXES
+   ========================================================= */
+
+QMessageBox {
+    background-color: #1E2A3A;
+    color: #EAF1FF;
+    border-radius: 10px;
+}
+
+QMessageBox QLabel {
+    color: #EAF1FF;
+    font-size: 14px;
+}
+
+QMessageBox QPushButton {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 #86A8CF,
+        stop:1 #C38EB4
+    );
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 6px 16px;
+    font-weight: 600;
+}
+
+QMessageBox QPushButton:hover {
+    opacity: 0.85;
+}
+
+QMessageBox QPushButton:pressed {
+    opacity: 0.7;
+}
+
+QListWidget#sidebarList QScrollBar:horizontal {
+    height: 0px;
+    background: transparent;
+}
+
+QListWidget#sidebarList {
+    padding-right: 0px;
 }

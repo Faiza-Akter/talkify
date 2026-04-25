@@ -10,17 +10,26 @@ from shared.protocol import create_packet, encode_packet, decode_packets
 class NetworkClient(QObject):
     login_success = Signal(dict)
     login_failed = Signal(str)
+
     public_message_received = Signal(dict)
     private_message_received = Signal(dict)
     room_message_received = Signal(dict)
+
+    typing_received = Signal(dict)
+    message_status_received = Signal(dict)
+    profile_updated = Signal(dict)
+
     join_notice_received = Signal(str)
     leave_notice_received = Signal(str)
     room_joined = Signal(str)
     user_list_received = Signal(list)
     room_list_received = Signal(list)
+
     error_received = Signal(str)
     admin_response_received = Signal(str)
     disconnected = Signal()
+
+    message_deleted = Signal(dict)
 
     def __init__(self):
         super().__init__()
@@ -28,6 +37,9 @@ class NetworkClient(QObject):
         self.username = None
         self.buffer = ""
         self.connected = False
+        self.latest_users = []
+        self.latest_rooms = []
+        
 
     def connect_to_server(self, username, host=HOST, port=PORT):
         try:
@@ -36,18 +48,9 @@ class NetworkClient(QObject):
             self.socket.connect((host, port))
             self.connected = True
 
-            login_packet = create_packet(
-                packet_type="login",
-                sender=username
-            )
-            self.socket.sendall(encode_packet(login_packet))
+            self._send_packet(create_packet("login", sender=username))
 
-            receiver_thread = threading.Thread(
-                target=self.receive_loop,
-                daemon=True
-            )
-            receiver_thread.start()
-
+            threading.Thread(target=self.receive_loop, daemon=True).start()
         except Exception as error:
             self.login_failed.emit(f"Connection failed: {error}")
 
@@ -72,12 +75,24 @@ class NetworkClient(QObject):
 
                     elif packet_type == "public_message":
                         self.public_message_received.emit(packet)
+                        self._auto_ack(packet)
 
                     elif packet_type == "private_message":
                         self.private_message_received.emit(packet)
+                        self._auto_ack(packet)
 
                     elif packet_type == "room_message":
                         self.room_message_received.emit(packet)
+                        self._auto_ack(packet)
+
+                    elif packet_type == "typing":
+                        self.typing_received.emit(packet)
+
+                    elif packet_type == "message_status":
+                        self.message_status_received.emit(packet)
+
+                    elif packet_type == "profile_updated":
+                        self.profile_updated.emit(packet)
 
                     elif packet_type == "join_notice":
                         self.join_notice_received.emit(packet.get("message", ""))
@@ -88,12 +103,29 @@ class NetworkClient(QObject):
                     elif packet_type == "room_joined":
                         self.room_joined.emit(packet.get("message", ""))
 
+                    elif packet_type == "delete_message":
+                        self.message_deleted.emit(packet)
+
                     elif packet_type == "user_list":
-                        self.user_list_received.emit(packet.get("users", []))
+                        users = packet.get("users", [])
+
+                        usernames = []
+                        for user in users:
+                            if isinstance(user, dict):
+                                username = user.get("username", "")
+                                if username:
+                                    usernames.append(username)
+                            elif isinstance(user, str):
+                                usernames.append(user)
+
+                        self.latest_users = usernames
+                        self.user_list_received.emit(usernames)
 
                     elif packet_type == "room_list":
-                        self.room_list_received.emit(packet.get("rooms", []))
-
+                        rooms = packet.get("rooms", [])
+                        self.latest_rooms = rooms
+                        self.room_list_received.emit(rooms)
+                        
                     elif packet_type == "admin_response":
                         self.admin_response_received.emit(packet.get("message", ""))
 
@@ -106,19 +138,27 @@ class NetworkClient(QObject):
             self.connected = False
             self.disconnected.emit()
 
-    def send_public_message(self, message):
+    def _auto_ack(self, packet):
+        sender = packet.get("sender")
+        message_id = packet.get("message_id")
+        if sender and message_id and sender != self.username:
+            self.ack_message_delivery(message_id)
+
+    def send_public_message(self, message, reply_to=None):
         self._send_packet(create_packet(
             packet_type="public_message",
             sender=self.username,
-            message=message
+            message=message,
+            extra={"reply_to": reply_to}
         ))
 
-    def send_private_message(self, target, message):
+    def send_private_message(self, target, message, reply_to=None):
         self._send_packet(create_packet(
             packet_type="private_message",
             sender=self.username,
             target=target,
-            message=message
+            message=message,
+            extra={"reply_to": reply_to}
         ))
 
     def join_room(self, room_name):
@@ -128,12 +168,39 @@ class NetworkClient(QObject):
             room=room_name
         ))
 
-    def send_room_message(self, room_name, message):
+    def send_room_message(self, room_name, message, reply_to=None):
         self._send_packet(create_packet(
             packet_type="room_message",
             sender=self.username,
             room=room_name,
-            message=message
+            message=message,
+            extra={"reply_to": reply_to}
+        ))
+
+    def send_typing(self, target_mode, target=None, room=None, is_typing=True):
+        self._send_packet(create_packet(
+            packet_type="typing",
+            sender=self.username,
+            target=target,
+            room=room,
+            extra={
+                "target_mode": target_mode,
+                "is_typing": is_typing
+            }
+        ))
+
+    def ack_message_delivery(self, message_id):
+        self._send_packet(create_packet(
+            packet_type="delivered_ack",
+            sender=self.username,
+            extra={"message_id": message_id}
+        ))
+
+    def update_profile_picture(self, profile_picture):
+        self._send_packet(create_packet(
+            packet_type="update_profile_picture",
+            sender=self.username,
+            extra={"profile_picture": profile_picture}
         ))
 
     def kick_user(self, target):
@@ -143,11 +210,12 @@ class NetworkClient(QObject):
             target=target
         ))
 
-    def ban_user(self, target):
+    def ban_user(self, target, reason="No reason provided"):
         self._send_packet(create_packet(
             packet_type="ban",
             sender=self.username,
-            target=target
+            target=target,
+            message=reason
         ))
 
     def disconnect(self):
@@ -164,3 +232,10 @@ class NetworkClient(QObject):
                 self.socket.sendall(encode_packet(packet))
         except Exception as error:
             self.error_received.emit(f"Send failed: {error}")
+
+    def delete_message(self, message_id):
+        self._send_packet(create_packet(
+            packet_type="delete_message",
+            sender=self.username,
+            extra={"message_id": message_id}
+        ))

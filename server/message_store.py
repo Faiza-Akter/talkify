@@ -44,3 +44,15 @@ class MessageStore:
 
         message["status"] = "delivered"
         return message
+
+    
+    def count_messages_today(self):
+        today = datetime.now().strftime("%Y-%m-%d")
+        return sum(
+            1
+            for message in self.messages.values()
+            if message.get("created_at", "").startswith(today)
+        )
+    
+    def reset_messages(self):
+        self.messages.clear()

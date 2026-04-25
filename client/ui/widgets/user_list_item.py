@@ -3,36 +3,36 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFrame
 
 
 class UserListItem(QWidget):
-    def __init__(self, username, is_self=False):
+    def __init__(self, username, subtitle="Online", highlight=False):
         super().__init__()
 
         root = QHBoxLayout(self)
-        root.setContentsMargins(8, 8, 8, 8)
+        root.setContentsMargins(10, 8, 10, 8)
         root.setSpacing(10)
 
         avatar = QFrame()
-        avatar.setObjectName("userAvatar")
-        avatar.setFixedSize(38, 38)
+        avatar.setObjectName("userAvatarHighlight" if highlight else "userAvatar")
+        avatar.setFixedSize(36, 36)
 
-        initials = QLabel(username[:1].upper())
-        initials.setObjectName("userAvatarText")
-        initials.setAlignment(Qt.AlignCenter)
+        avatar_text = QLabel(username[:1].upper())
+        avatar_text.setAlignment(Qt.AlignCenter)
+        avatar_text.setObjectName("userAvatarText")
 
         avatar_layout = QVBoxLayout(avatar)
         avatar_layout.setContentsMargins(0, 0, 0, 0)
-        avatar_layout.addWidget(initials)
+        avatar_layout.addWidget(avatar_text)
 
         text_layout = QVBoxLayout()
-        text_layout.setSpacing(2)
+        text_layout.setSpacing(1)
 
-        name_label = QLabel(username)
-        name_label.setObjectName("userItemTitle")
+        title = QLabel(username)
+        title.setObjectName("userItemTitle")
 
-        status_label = QLabel("You" if is_self else "Online")
-        status_label.setObjectName("userItemSubtitle")
+        sub = QLabel(subtitle)
+        sub.setObjectName("userItemSubtitle")
 
-        text_layout.addWidget(name_label)
-        text_layout.addWidget(status_label)
+        text_layout.addWidget(title)
+        text_layout.addWidget(sub)
 
         root.addWidget(avatar)
         root.addLayout(text_layout)

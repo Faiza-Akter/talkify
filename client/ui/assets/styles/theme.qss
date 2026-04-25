@@ -785,3 +785,113 @@ QListWidget#sidebarList QScrollBar:horizontal {
 QListWidget#sidebarList {
     padding-right: 0px;
 }
+
+QFrame#adminSidebarPanel,
+QFrame#adminRightPanel {
+    background: rgba(18, 42, 72, 0.72);
+    border: 1px solid rgba(134, 168, 207, 0.18);
+    border-radius: 24px;
+}
+
+QLabel#adminBrandTitle {
+    color: #FFFFFF;
+    font-size: 28px;
+    font-weight: 900;
+}
+
+QLabel#adminBrandSubtitle {
+    color: #C38EB4;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+QFrame#adminToolCard {
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(134, 168, 207, 0.16);
+    border-radius: 18px;
+}
+
+QLabel#adminPanelTitle {
+    color: #EAF1FF;
+    font-size: 17px;
+    font-weight: 900;
+}
+
+QListWidget#adminMiniList {
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+QListWidget#adminMiniList::item {
+    background: transparent;
+    border: none;
+    padding: 2px;
+    margin: 2px;
+}
+
+QLabel#adminOnlineDot {
+    color: #64F4A4;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+QLabel#adminUserName {
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+QPushButton#adminKickButton {
+    background: rgba(255, 193, 7, 0.10);
+    color: #FFC857;
+    border: 1px solid rgba(255, 193, 7, 0.45);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+QPushButton#adminKickButton:hover {
+    background: rgba(255, 193, 7, 0.22);
+}
+
+QPushButton#adminBanButton {
+    background: rgba(255, 82, 100, 0.10);
+    color: #FF6B7A;
+    border: 1px solid rgba(255, 82, 100, 0.45);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+QPushButton#adminBanButton:hover {
+    background: rgba(255, 82, 100, 0.22);
+}
+
+QLabel#adminStatLabel {
+    color: #DDE8FF;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(134, 168, 207, 0.12);
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+QLabel#adminSelfTag {
+    background: rgba(100, 244, 164, 0.16);
+    color: #64F4A4;
+    border: 1px solid rgba(100, 244, 164, 0.28);
+    border-radius: 8px;
+    padding: 4px 9px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+QListWidget#adminMiniList::item {
+    min-height: 46px;
+    padding: 2px;
+    margin: 2px 0px;
+}

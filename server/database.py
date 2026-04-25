@@ -72,3 +72,35 @@ class Database:
             "UPDATE users SET profile_picture=%s WHERE username=%s",
             (profile_picture, username)
         )
+
+    def get_banned_users(self):
+        try:
+            cursor = self.get_cursor()
+            cursor.execute("""
+                SELECT 
+                    username,
+                    MAX(reason) AS reason,
+                    MAX(banned_by) AS banned_by,
+                    MAX(banned_at) AS banned_at
+                FROM banned_users
+                GROUP BY LOWER(username)
+                ORDER BY MAX(banned_at) DESC
+            """)
+            rows = cursor.fetchall()
+
+            banned_users = []
+            for row in rows:
+                banned_at = row.get("banned_at")
+
+                banned_users.append({
+                    "username": row.get("username", ""),
+                    "reason": row.get("reason", "No reason provided"),
+                    "banned_by": row.get("banned_by", ""),
+                    "banned_at": banned_at.strftime("%Y-%m-%d %I:%M %p") if banned_at else "",
+                })
+
+            return banned_users
+
+        except Exception as e:
+            print("[DB ERROR - get_banned_users]:", e)
+            return []

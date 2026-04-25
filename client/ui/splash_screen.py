@@ -1,72 +1,139 @@
 import os
 
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
+from PySide6.QtCore import QEasingCurve, QPropertyAnimation, QTimer, Qt, QRect
+from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
 
 
 class SplashScreen(QWidget):
-    def __init__(self, on_finish_callback=None):
+    def __init__(self, on_finish=None) -> None:
         super().__init__()
-        self.on_finish_callback = on_finish_callback
+        self.on_finish = on_finish
 
-        self.setWindowTitle("Talkify")
-        self.setFixedSize(760, 460)
+        self.setWindowTitle('Talkify')
+        self.setFixedSize(760, 430)
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        self.build_ui()
+        self._build_ui()
+        self._play_intro()
+        QTimer.singleShot(1800, self._finish)
 
-        QTimer.singleShot(1800, self.finish_splash)
+    def _trim_transparent_padding(self, pixmap: QPixmap) -> QPixmap:
+        image = pixmap.toImage().convertToFormat(QImage.Format_ARGB32)
 
-    def build_ui(self):
+        width = image.width()
+        height = image.height()
+
+        min_x = width
+        min_y = height
+        max_x = -1
+        max_y = -1
+
+        for y in range(height):
+            for x in range(width):
+                alpha = image.pixelColor(x, y).alpha()
+                if alpha > 10:
+                    min_x = min(min_x, x)
+                    min_y = min(min_y, y)
+                    max_x = max(max_x, x)
+                    max_y = max(max_y, y)
+
+        if max_x == -1 or max_y == -1:
+            return pixmap
+
+        rect = QRect(min_x, min_y, max_x - min_x + 1, max_y - min_y + 1)
+        return pixmap.copy(rect)
+
+    def _build_ui(self) -> None:
         root = QVBoxLayout(self)
-        root.setContentsMargins(24, 24, 24, 24)
+        root.setContentsMargins(18, 18, 18, 18)
 
-        card = QFrame()
-        card.setObjectName("splashCard")
+        self.card = QFrame()
+        self.card.setObjectName('splashCard')
 
-        card_layout = QVBoxLayout(card)
-        card_layout.setContentsMargins(40, 40, 40, 40)
-        card_layout.setSpacing(16)
+        layout = QVBoxLayout(self.card)
+        layout.setContentsMargins(40, 36, 40, 36)
+
+        # Keep this 0, then control spacing manually below
+        layout.setSpacing(0)
 
         logo = QLabel()
         logo.setAlignment(Qt.AlignCenter)
 
-        logo_path = os.path.join(
-            os.path.dirname(__file__),
-            "assets",
-            "logo.png"
-        )
+        logo_path = os.path.join(os.path.dirname(__file__), 'assets', 'logo1.png')
+
         if os.path.exists(logo_path):
-            pixmap = QPixmap(logo_path).scaled(
-                140, 140, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            pixmap = QPixmap(logo_path)
+
+            # Removes empty transparent area inside the PNG
+            pixmap = self._trim_transparent_padding(pixmap)
+
+            # Change this size if you want the logo bigger/smaller
+            pixmap = pixmap.scaled(
+                150,
+                150,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
             )
+
             logo.setPixmap(pixmap)
 
-        title = QLabel("Talkify")
-        title.setObjectName("splashTitle")
-        title.setAlignment(Qt.AlignCenter)
+        self.title_label = QLabel('Talkify')
+        self.title_label.setObjectName('splashTitle')
+        self.title_label.setAlignment(Qt.AlignCenter)
 
-        subtitle = QLabel("Elegant real-time communication for your network project")
-        subtitle.setObjectName("splashSubtitle")
+        subtitle = QLabel('Client-server realtime desktop chat experience')
+        subtitle.setObjectName('splashSubtitle')
         subtitle.setAlignment(Qt.AlignCenter)
 
-        footer = QLabel("Loading interface...")
-        footer.setObjectName("splashFooter")
-        footer.setAlignment(Qt.AlignCenter)
+        self.progress_label = QLabel('Loading interface...')
+        self.progress_label.setObjectName('splashFooter')
+        self.progress_label.setAlignment(Qt.AlignCenter)
 
-        card_layout.addStretch()
-        card_layout.addWidget(logo)
-        card_layout.addWidget(title)
-        card_layout.addWidget(subtitle)
-        card_layout.addSpacing(12)
-        card_layout.addWidget(footer)
-        card_layout.addStretch()
+        layout.addStretch()
 
-        root.addWidget(card)
+        layout.addWidget(logo)
 
-    def finish_splash(self):
+        # Spacing between logo and Talkify
+        layout.addSpacing(4)
+
+        layout.addWidget(self.title_label)
+
+        # Spacing between Talkify and subtitle
+        layout.addSpacing(6)
+
+        layout.addWidget(subtitle)
+
+        # Spacing between subtitle and loading text
+        layout.addSpacing(22)
+
+        layout.addWidget(self.progress_label)
+
+        layout.addStretch()
+
+        root.addWidget(self.card)
+
+        self.dot_timer = QTimer(self)
+        self.dot_timer.timeout.connect(self._animate_dots)
+        self.dot_timer.start(350)
+        self._dots = 0
+
+    def _animate_dots(self) -> None:
+        self._dots = (self._dots + 1) % 4
+        self.progress_label.setText('Loading interface' + '.' * self._dots)
+
+    def _play_intro(self) -> None:
+        self.anim = QPropertyAnimation(self, b'windowOpacity')
+        self.anim.setDuration(520)
+        self.anim.setStartValue(0.0)
+        self.anim.setEndValue(1.0)
+        self.anim.setEasingCurve(QEasingCurve.OutCubic)
+        self.anim.start()
+
+    def _finish(self) -> None:
+        self.dot_timer.stop()
         self.close()
-        if self.on_finish_callback:
-            self.on_finish_callback()
+
+        if self.on_finish:
+            self.on_finish()

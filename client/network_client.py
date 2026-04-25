@@ -27,6 +27,7 @@ class NetworkClient(QObject):
 
     error_received = Signal(str)
     admin_response_received = Signal(str)
+    admin_data_received = Signal(dict)
     disconnected = Signal()
 
     message_deleted = Signal(dict)
@@ -125,7 +126,10 @@ class NetworkClient(QObject):
                         rooms = packet.get("rooms", [])
                         self.latest_rooms = rooms
                         self.room_list_received.emit(rooms)
-                        
+
+                    elif packet_type == "admin_data":
+                        self.admin_data_received.emit(packet)
+
                     elif packet_type == "admin_response":
                         self.admin_response_received.emit(packet.get("message", ""))
 
@@ -238,4 +242,10 @@ class NetworkClient(QObject):
             packet_type="delete_message",
             sender=self.username,
             extra={"message_id": message_id}
+        ))
+
+    def request_admin_data(self):
+        self._send_packet(create_packet(
+            packet_type="request_admin_data",
+            sender=self.username
         ))

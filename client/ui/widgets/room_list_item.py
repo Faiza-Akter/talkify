@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt
+'''from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFrame
 
 
@@ -36,4 +36,4 @@ class RoomListItem(QWidget):
 
         root.addWidget(icon_frame)
         root.addLayout(text_layout)
-        root.addStretch()
+        root.addStretch() '''

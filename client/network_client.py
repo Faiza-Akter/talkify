@@ -110,17 +110,27 @@ class NetworkClient(QObject):
                     elif packet_type == "user_list":
                         users = packet.get("users", [])
 
-                        usernames = []
+                        normalized_users = []
                         for user in users:
                             if isinstance(user, dict):
                                 username = user.get("username", "")
                                 if username:
-                                    usernames.append(username)
+                                    normalized_users.append({
+                                        "username": username,
+                                        "online": user.get("online", True),
+                                        "is_admin": user.get("is_admin", False),
+                                        "profile_picture": user.get("profile_picture", "default_avatar.png"),
+                                    })
                             elif isinstance(user, str):
-                                usernames.append(user)
+                                normalized_users.append({
+                                    "username": user,
+                                    "online": True,
+                                    "is_admin": False,
+                                    "profile_picture": "default_avatar.png",
+                                })
 
-                        self.latest_users = usernames
-                        self.user_list_received.emit(usernames)
+                        self.latest_users = normalized_users
+                        self.user_list_received.emit(normalized_users)
 
                     elif packet_type == "room_list":
                         rooms = packet.get("rooms", [])

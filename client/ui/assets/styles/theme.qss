@@ -3,9 +3,30 @@
    ========================================================= */
 
 QWidget {
-    font-family: "Segoe UI";
+    font-family: "Exo 2", "Segoe UI", Arial;
     font-size: 14px;
     color: #E7E6F6;
+}
+
+QLabel,
+QPushButton,
+QToolButton,
+QLineEdit,
+QListWidget,
+QMessageBox {
+    font-family: "Exo 2", "Segoe UI", Arial;
+}
+
+QLabel#loginHeading,
+QLabel#loginHeroTitle,
+QLabel#chatTitle,
+QLabel#adminPanelTitle,
+QLabel#sidebarSectionTitle,
+QLabel#dialogTitle,
+QLabel#emptyStateTitle,
+QLabel#bottomUserName,
+QLabel#sidebarItemTitle {
+    font-family: "Space Grotesk", "Exo 2", "Segoe UI", Arial;
 }
 
 QLabel {
@@ -20,7 +41,6 @@ QLabel {
         stop: 1 #122949
     );
 }
-
 
 /* =========================================================
    02. GLOBAL INPUT FIELDS
@@ -257,7 +277,7 @@ QFrame#loginHero {
 }
 
 QFrame#loginFormPanel {
-    background: rgba(8, 18, 34, 0.72);
+    background: rgba(18, 31, 52, 0.88);
     border-top-right-radius: 28px;
     border-bottom-right-radius: 28px;
 }
@@ -320,6 +340,308 @@ QLabel#formLabel {
 QLabel#formError {
     color: #FFB4C8;
     font-size: 13px;
+    font-weight: 700;
+}
+
+QFrame#tinyFeatureGrid {
+    background: transparent;
+    border: none;
+}
+
+QFrame#tinyFeatureCard {
+    background: rgba(255,255,255,0.075);
+    border: 1px solid rgba(225, 203, 215, 0.14);
+    border-radius: 14px;
+}
+
+QFrame#tinyFeatureCard:hover {
+    background: rgba(255,255,255,0.11);
+    border: 1px solid rgba(195, 142, 180, 0.42);
+}
+
+QLabel#formLabelIcon,
+QLabel#tinyFeatureIcon {
+    background: transparent;
+}
+
+QLabel#tinyFeatureText {
+    color: #D6E0F4;
+    font-size: 13px;
+    font-weight: 600;
+    background: transparent;
+}
+
+QFrame#loginShowcaseItem {
+    background: transparent;
+    border: none;
+}
+
+QLabel#loginShowcaseIcon {
+    background: transparent;
+}
+
+QLabel#loginShowcaseText {
+    color: #EAF1FF;
+    font-size: 13px;
+    font-weight: 700;
+    background: transparent;
+}
+
+QFrame#loginShowcaseDivider {
+    background: rgba(255, 255, 255, 0.18);
+    border: none;
+}
+
+
+/* =========================================================
+   LOGIN WINDOW — FULL REPLACEMENT FOR SECTION 05
+   Replace everything between "05. LOGIN WINDOW" and the
+   next section header (06. MAIN CHAT LAYOUT) with this block.
+   ========================================================= */
+
+#appRoot {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 1,
+        stop: 0.00 #040D1A,
+        stop: 0.35 #081530,
+        stop: 0.65 #0D1E45,
+        stop: 1.00 #0B1530
+    );
+}
+
+QFrame#loginShell {
+    background: rgba(12, 24, 46, 0.52);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 32px;
+}
+
+QFrame#loginHero {
+    border-top-left-radius: 32px;
+    border-bottom-left-radius: 32px;
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 1,
+        stop: 0.00 #07122A,
+        stop: 0.30 #142340,
+        stop: 0.62 #2B2060,
+        stop: 0.85 #4A1F6C,
+        stop: 1.00 #6B2560
+    );
+    border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+QFrame#loginFormPanel {
+    background: rgba(8, 16, 32, 0.78);
+    border-top-right-radius: 32px;
+    border-bottom-right-radius: 32px;
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+QLabel#loginBadge {
+    color: rgba(220, 175, 210, 0.95);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    background: rgba(195, 142, 180, 0.10);
+    border: 1px solid rgba(195, 142, 180, 0.28);
+    border-radius: 20px;
+    padding: 5px 14px;
+}
+
+QLabel#heroLogoLabel {
+    background: transparent;
+}
+
+/* FIX: Smaller title font (was 52px) */
+QLabel#loginHeroTitle {
+    color: #FFFFFF;
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -0.5px;
+}
+
+/* FIX: Full-width accent bar — no max-width constraint */
+QFrame#heroAccentBar {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0   #86A8CF,
+        stop: 0.5 #C38EB4,
+        stop: 1   #C38EB4
+    );
+    border: none;
+    border-radius: 2px;
+    /* NO max-width — stretches to full panel width */
+}
+
+QLabel#loginHeroText {
+    color: rgba(210, 225, 248, 0.78);
+    font-size: 13px;
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+QFrame#featureGlassCard {
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 18px;
+}
+
+QFrame#loginShowcaseItem {
+    background: transparent;
+    border: none;
+}
+
+QLabel#loginShowcaseIcon {
+    background: transparent;
+}
+
+QLabel#loginShowcaseText {
+    color: #EAF1FF;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    background: transparent;
+}
+
+QFrame#loginShowcaseDivider {
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+}
+
+/* RIGHT PANEL ─────────────────────────────────────────────── */
+
+QLabel#loginHeading {
+    color: #FFFFFF;
+    font-size: 46px;
+    font-weight: 900;
+    letter-spacing: -1px;
+}
+
+QLabel#loginSubheading {
+    color: rgba(190, 210, 240, 0.70);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+QFrame#loginCard {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+}
+
+QLabel#formLabel {
+    color: rgba(195, 142, 180, 0.95);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 2.5px;
+}
+
+QLabel#formLabelIcon {
+    background: transparent;
+}
+
+QFrame#inputShell {
+    background: rgba(8, 18, 40, 0.55);
+    border: 1px solid rgba(134, 168, 207, 0.28);
+    border-radius: 13px;
+    min-height: 48px;
+    max-height: 52px;
+}
+
+QFrame#inputShell:focus-within {
+    border: 1px solid rgba(195, 142, 180, 0.72);
+    background: rgba(8, 18, 40, 0.72);
+}
+
+QLabel#inputPrefix {
+    color: rgba(134, 168, 207, 0.70);
+    font-size: 17px;
+    font-weight: 700;
+    background: transparent;
+    padding-right: 4px;
+}
+
+QLineEdit#usernameInput {
+    background: transparent;
+    border: none;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 0px 4px;
+    min-height: 44px;
+    selection-background-color: rgba(195, 142, 180, 0.40);
+}
+
+QLabel#formError {
+    color: #FFB4C8;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 0px;
+}
+
+QPushButton#primaryButton {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0.00 #5878A8,
+        stop: 0.45 #7B5EA8,
+        stop: 1.00 #A84D8A
+    );
+    color: #FFFFFF;
+    border: none;
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    border-radius: 14px;
+}
+
+QPushButton#primaryButton:hover {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0.00 #6A90C4,
+        stop: 0.45 #9474C8,
+        stop: 1.00 #C45FA0
+    );
+}
+
+QPushButton#primaryButton:disabled {
+    background: rgba(100, 120, 160, 0.35);
+    color: rgba(255, 255, 255, 0.50);
+}
+
+/* FIX: helper text center-aligned */
+QLabel#helperText {
+    color: rgba(180, 200, 230, 0.55);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    qproperty-alignment: AlignCenter;
+}
+
+QFrame#tinyFeatureGrid {
+    background: transparent;
+    border: none;
+}
+
+QFrame#tinyFeatureCard {
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 12px;
+}
+
+QFrame#tinyFeatureCard:hover {
+    background: rgba(195, 142, 180, 0.14);
+    border: 1px solid rgba(195, 142, 180, 0.38);
+}
+
+QLabel#tinyFeatureIcon,
+QLabel#tinyFeatureText {
+    background: transparent;
+}
+
+QLabel#tinyFeatureText {
+    color: rgba(210, 225, 248, 0.80);
+    font-size: 12px;
     font-weight: 700;
 }
 
@@ -387,8 +709,8 @@ QListWidget#sidebarList::item {
     border-radius: 12px;
 }
 
-QListWidget#sidebarList::item:selected {
-    background: rgba(134, 168, 207, 0.18);
+QListWidget#sidebarList::item:hover {
+    background: rgba(195, 142, 180, 0.3);   
     border-radius: 12px;
 }
 
@@ -895,3 +1217,1036 @@ QListWidget#adminMiniList::item {
     padding: 2px;
     margin: 2px 0px;
 }
+/* =========================================================
+   24. SLIM REDESIGN OVERRIDES
+   ========================================================= */
+QFrame#sidebarPanel,
+QFrame#mainPanel {
+    border-radius: 16px;
+    border: 1px solid rgba(225, 203, 215, 0.10);
+}
+
+QFrame#sidebarPanel {
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #111F39,
+        stop:0.48 #172D52,
+        stop:1 #0D1B31
+    );
+}
+
+QFrame#mainPanel {
+    background: rgba(8, 18, 34, 0.46);
+}
+
+QLineEdit#sidebarSearch {
+    min-height: 30px;
+    max-height: 34px;
+    border-radius: 10px;
+    padding: 1px 12px;
+}
+
+QPushButton#filterButton {
+    min-height: 30px;
+    max-height: 34px;
+    border-radius: 9px;
+    padding: 4px 10px;
+}
+
+QListWidget#sidebarList {
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    padding: 7px;
+}
+
+QListWidget#sidebarList::item {
+    margin: 0px 4px;
+    border-radius: 9px;
+}
+
+QFrame#sidebarAvatar,
+QFrame#sidebarAvatarAccent {
+    border-radius: 19px;
+}
+
+QLabel#sidebarAvatarText {
+    font-size: 15px;
+}
+
+QLabel#unreadBadge {
+    background: #6E6AF2;
+    color: #FFFFFF;
+    border-radius: 11px;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+QFrame#sidebarUserCard {
+    border-radius: 13px;
+    background: rgba(255,255,255,0.06);
+}
+
+QLabel#bottomAvatar {
+    min-width: 42px;
+    min-height: 42px;
+    max-width: 42px;
+    max-height: 42px;
+    border-radius: 21px;
+    font-size: 18px;
+}
+
+QFrame#chatHeader {
+    border-radius: 13px;
+    background: rgba(255,255,255,0.055);
+}
+
+QLabel#chatTitle {
+    font-size: 24px;
+}
+
+QLabel#chatSubtitle {
+    font-size: 13px;
+}
+
+QLabel#statusBadge {
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+QWidget#messagesSurface {
+    border-radius: 13px;
+    background: rgba(255,255,255,0.045);
+}
+
+QFrame#composerPanel {
+    border-radius: 6px;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+QFrame#messageInputShell {
+    background: rgba(255,255,255,0.075);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    min-height: 38px;
+    max-height: 40px;
+}
+
+QLineEdit#messageInput {
+    background: transparent;
+    border: none;
+    padding: 0;
+    min-height: 34px;
+    max-height: 38px;
+    font-size: 14px;
+}
+
+QToolButton#emojiInsideButton {
+    background: transparent;
+    border: none;
+    color: #EAF1FF;
+    font-size: 20px;
+    border-radius: 14px;
+}
+
+QToolButton#emojiInsideButton:hover {
+    background: rgba(255,255,255,0.12);
+}
+
+QPushButton#primaryButton {
+    border-radius: 12px;
+    font-size: 20px;
+    padding: 0;
+}
+
+QFrame#inlineReplyFrame {
+    background: rgba(255,255,255,0.065);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+}
+
+QFrame#inlineReplyAccent {
+    background: #49E48A;
+    border-radius: 2px;
+}
+
+QLabel#inlineReplySender {
+    color: #49E48A;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+QLabel#inlineReplyMessage {
+    color: #DDE7F8;
+    font-size: 12px;
+}
+
+QToolButton#inlineReplyClose {
+    background: transparent;
+    color: #EAF1FF;
+    border: none;
+    font-size: 22px;
+    border-radius: 12px;
+}
+
+QToolButton#inlineReplyClose:hover {
+    background: rgba(255,255,255,0.12);
+}
+
+QFrame#messageBubbleOwn,
+QFrame#messageBubbleOther {
+    border-radius: 10px;
+}
+
+QFrame#messageBubbleOwn {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #7FA0CA, stop:1 #B982B1);
+}
+
+QFrame#messageBubbleOther {
+    background: rgba(255,255,255,0.105);
+}
+
+QLabel#messageAvatar {
+    background: rgba(134,168,207,0.25);
+    color: #FFFFFF;
+    border-radius: 17px;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+QLabel#messageText {
+    font-size: 14px;
+}
+
+QLabel#messageTextDeleted {
+    color: rgba(255,255,255,0.66);
+    font-size: 13px;
+    font-style: italic;
+}
+
+QLabel#messageMeta,
+QLabel#messageStatus {
+    font-size: 10px;
+}
+
+QFrame#messageActions {
+    background: rgba(12, 22, 39, 0.86);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 9px;
+}
+
+QToolButton#messageActionButton {
+    background: transparent;
+    color: #EAF1FF;
+    border: none;
+    border-radius: 7px;
+    font-size: 15px;
+}
+
+QToolButton#messageActionButton:hover {
+    background: rgba(134,168,207,0.24);
+    color: #FFFFFF;
+}
+
+QLabel#messageReactions {
+    background: rgba(8,18,34,0.50);
+    color: #FFFFFF;
+    border-radius: 9px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+QFrame#replyPreviewBox {
+    border-radius: 7px;
+    border-left: 3px solid #49E48A;
+    background: rgba(8,18,34,0.22);
+}
+
+QDialog#roomDialog,
+QDialog#profileDialog,
+QWidget#emojiPicker {
+    background: #0F1D35;
+    border: 1px solid rgba(225,203,215,0.14);
+    border-radius: 14px;
+}
+
+QLabel#fieldLabel {
+    color: #B8C7DE;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.7px;
+}
+
+QLabel#dialogHint {
+    color: #B8C7DE;
+    font-size: 12px;
+}
+
+QListWidget#dialogUserList {
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px;
+    padding: 5px;
+    outline: none;
+}
+
+QCheckBox#dialogCheck {
+    color: #F4F6FF;
+    spacing: 8px;
+    padding: 5px;
+}
+
+/* =========================================================
+   25. TALKIFY PROFESSIONAL UI/UX UPDATE OVERRIDES
+   ========================================================= */
+
+QFrame#chatHeader {
+    background: transparent;
+    border: none;
+    border-radius: 0px;
+    padding: 0px;
+}
+
+QLabel#targetBadge {
+    color: #D7B4D4;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+}
+
+QLabel#chatTitle {
+    color: #FFFFFF;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+QLabel#chatSubtitle {
+    color: #BFD1EA;
+    font-size: 13px;
+}
+
+QLabel#statusBadge {
+    background: rgba(88, 230, 154, 0.14);
+    border: 1px solid rgba(88, 230, 154, 0.30);
+    color: #9CFAB2;
+    border-radius: 12px;
+    font-weight: 900;
+}
+
+QWidget#messagesSurface {
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+}
+
+QFrame#emptyStateCard {
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(195,142,180,0.20);
+    border-radius: 22px;
+    min-width: 360px;
+    max-width: 520px;
+}
+
+QLabel#emptyStateIcon {
+    font-size: 42px;
+    color: #E1CBD7;
+}
+
+QLabel#emptyStateTitle {
+    color: #FFFFFF;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+QLabel#emptyStateSubtitle {
+    color: #B8C7DE;
+    font-size: 13px;
+}
+
+QFrame#composerPanel {
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    min-height: 52px;
+    max-height: 112px;
+}
+
+QFrame#messageInputShell {
+    background: rgba(255,255,255,0.075);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 13px;
+    min-height: 34px;
+    max-height: 36px;
+}
+
+QLineEdit#messageInput {
+    background: transparent;
+    border: none;
+    padding: 0px 2px;
+    min-height: 30px;
+    max-height: 34px;
+    font-size: 14px;
+}
+
+QToolButton#emojiInsideButton {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #EAF1FF;
+    font-size: 18px;
+    border-radius: 12px;
+}
+
+QToolButton#emojiInsideButton:hover {
+    background: rgba(195,142,180,0.22);
+    border: 1px solid rgba(195,142,180,0.32);
+}
+
+QPushButton#primaryButton {
+    border-radius: 13px;
+    font-size: 18px;
+    padding: 0px 14px;
+    min-height: 34px;
+}
+
+QFrame#inlineReplyFrame {
+    background: rgba(195,142,180,0.13);
+    border: 1px solid rgba(195,142,180,0.20);
+    border-radius: 12px;
+}
+
+QFrame#inlineReplyAccent {
+    background: #F2A7CF;
+    border-radius: 2px;
+}
+
+QLabel#inlineReplySender {
+    color: #FFD6EA;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+QLabel#inlineReplyMessage {
+    color: #F3E8F1;
+    font-size: 12px;
+}
+
+QFrame#replyPreviewBox {
+    border-left: 3px solid #F2A7CF;
+    background: rgba(195,142,180,0.14);
+    border-radius: 8px;
+}
+
+QLabel#replySenderLabel {
+    color: #FFD6EA;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+QFrame#messageActionsRail {
+    background: transparent;
+    border: none;
+}
+
+QToolButton#messageActionButton {
+    background: rgba(12, 22, 39, 0.92);
+    color: #EAF1FF;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+QToolButton#messageActionButton:hover {
+    background: rgba(195,142,180,0.30);
+    border: 1px solid rgba(195,142,180,0.45);
+    color: #FFFFFF;
+}
+
+QFrame#messageBubbleOwn,
+QFrame#messageBubbleOther {
+    border-radius: 13px;
+}
+
+QFrame#messageBubbleOther {
+    background: rgba(255,255,255,0.105);
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+QLabel#messageReactions {
+    background: rgba(8,18,34,0.76);
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 11px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 900;
+    min-height: 18px;
+}
+
+QLabel#messageTextDeleted {
+    color: rgba(255,255,255,0.66);
+    font-size: 13px;
+    font-style: italic;
+}
+
+QWidget#reactionPicker {
+    background: rgba(20, 28, 41, 0.98);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 22px;
+}
+
+QWidget#reactionPicker QPushButton#reactionEmojiButton {
+    background: transparent;
+    border: none;
+    border-radius: 18px;
+    font-size: 22px;
+    padding: 0px;
+}
+
+
+QWidget#reactionPicker QPushButton#reactionEmojiButton:hover {
+    background: rgba(255,255,255,0.13);
+    border-radius: 18px;
+}
+
+QWidget#emojiPicker {
+    background: rgba(15, 29, 53, 0.98);
+    border: 1px solid rgba(225,203,215,0.18);
+    border-radius: 16px;
+}
+
+QPushButton#emojiButton {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px;
+    padding: 0px;
+    font-size: 18px;
+}
+
+QPushButton#emojiButton:hover {
+    background: rgba(195,142,180,0.24);
+}
+
+QFrame#dialogHeroCard,
+QFrame#dialogGlassCard {
+    background: rgba(255,255,255,0.065);
+    border: 1px solid rgba(225,203,215,0.14);
+    border-radius: 20px;
+}
+
+QLabel#dialogHeroIcon,
+QLabel#profilePreviewAvatar {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #86A8CF, stop:1 #C38EB4);
+    color: #081222;
+    border-radius: 27px;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+QLabel#profilePreviewAvatar {
+    border-radius: 31px;
+    font-size: 28px;
+}
+
+QDialog#roomDialog,
+QDialog#profileDialog {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #0B1F3A, stop:0.55 #102846, stop:1 #1F2E4B);
+    border: 1px solid rgba(225,203,215,0.18);
+    border-radius: 18px;
+}
+
+QLabel#dialogTitle {
+    color: #FFFFFF;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+QLabel#fieldLabel {
+    color: #D6BCE2;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+QListWidget#dialogUserList {
+    background: rgba(8,18,34,0.36);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 8px;
+    outline: none;
+}
+
+QCheckBox#dialogCheck {
+    color: #F4F6FF;
+    spacing: 8px;
+    padding: 7px;
+    border-radius: 8px;
+}
+
+QCheckBox#dialogCheck:hover {
+    background: rgba(195,142,180,0.13);
+}
+
+QLabel#sidebarItemTitle {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+QLabel#sidebarItemSubtitle {
+    font-size: 13px;
+    color: #BDD0EA;
+}
+
+/* =========================================================
+   26. TALKIFY FOLLOW-UP FIXES
+   ========================================================= */
+QFrame#messageBubbleOwn {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #6F8FBD, stop:0.48 #8D7BBD, stop:1 #A8659B);
+    border: 1px solid rgba(255,255,255,0.18);
+}
+
+QFrame#messageBubbleOther {
+    background: rgba(255,255,255,0.13);
+    border: 1px solid rgba(255,255,255,0.18);
+}
+
+QLabel#messageText,
+QLabel#messageSenderOwn,
+QLabel#messageSenderOther,
+QLabel#messageMeta,
+QLabel#messageStatus {
+    color: #FFFFFF;
+}
+
+QLabel#messageReactions {
+    background: rgba(8,18,34,0.92);
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.20);
+    border-radius: 11px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 900;
+    min-height: 18px;
+}
+
+QToolButton#emojiInsideButton {
+    background: transparent;
+    border: none;
+    color: #EAF1FF;
+    font-size: 18px;
+    border-radius: 0px;
+    padding: 0px;
+}
+
+QToolButton#emojiInsideButton:hover {
+    background: transparent;
+    border: none;
+    color: #FFD6EA;
+}
+
+QFrame#composerPanel {
+    min-height: 48px;
+    max-height: 104px;
+}
+
+QFrame#inlineReplyFrame {
+    margin-right: 0px;
+}
+
+QLabel#bottomAvatar {
+    border-radius: 23px;
+    min-width: 46px;
+    min-height: 46px;
+    max-width: 46px;
+    max-height: 46px;
+}
+
+QLabel#profilePreviewAvatar {
+    border-radius: 31px;
+}
+
+QDialog#roomDialog QLineEdit#profileInput {
+    min-height: 0px;
+    max-height: 38px;
+    padding: 0px 12px;
+    font-size: 13px;
+}
+
+QDialog#roomDialog QLineEdit#profileInput {
+    min-height: 30px;
+    max-height: 32px;
+    padding: 3px 14px;
+    font-size: 13px;
+    border-radius: 12px;
+}
+QDialog#roomDialog QPushButton#filterButton {
+    min-height: 36px;
+    max-height: 40px;
+    border-radius: 10px;
+}
+
+QFrame#dialogHeroCard {
+    min-height: 72px;
+    max-height: 92px;
+}
+
+QDialog#roomDialog QPushButton#primaryButton {
+    border-radius: 10px;
+    min-height: 34px;
+    max-height: 34px;
+}
+
+QDialog#roomDialog QPushButton#ghostToolButton {
+    min-height: 34px;
+    max-height: 34px;
+    border-radius: 10px;
+}
+
+QDialog#roomDialog QPushButton#ghostToolButton {
+    min-height: 34px;
+    max-height: 34px;
+    padding: 0px 14px;   
+    border-radius: 10px;
+}
+
+QFrame#roomPlainHeader {
+    background: transparent;
+    border: none;
+}
+
+QFrame#roomHeaderLine {
+    background: rgba(255,255,255,0.14);
+    border: none;
+}
+
+QDialog#roomDialog QLabel#dialogHeroIcon {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:1,
+        stop:0 #86A8CF,
+        stop:1 #C38EB4
+    );
+    color: #081222;
+    border-radius: 29px;
+    font-size: 24px;
+    font-weight: 900;
+}
+/* =========================================================
+   27. CAREFUL PATCH OVERRIDES - MESSAGE BOX CORE FIXES
+   Preserves the original theme above and only adjusts requested areas.
+   ========================================================= */
+
+QFrame#chatHeader {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.13);
+    border-radius: 0px;
+    padding: 0px;
+}
+
+QLabel#targetBadge,
+QLabel#statusBadge {
+    background: transparent;
+    border: none;
+    color: transparent;
+    min-width: 0px;
+    max-width: 0px;
+    min-height: 0px;
+    max-height: 0px;
+    padding: 0px;
+    margin: 0px;
+}
+
+QLabel#headerAvatar {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #86A8CF, stop:1 #C38EB4);
+    color: #081222;
+    border-radius: 22px;
+    font-size: 17px;
+    font-weight: 900;
+}
+
+QLabel#chatTitle {
+    color: #FFFFFF;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+QLabel#chatSubtitle {
+    color: #C4D4EA;
+    font-size: 13px;
+}
+
+QWidget#messagesSurface {
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+}
+
+QFrame#emptyStateCard {
+    background: transparent;
+    border: none;
+    min-width: 0px;
+    max-width: 420px;
+}
+
+QLabel#emptyStateIcon {
+    font-size: 28px;
+    color: rgba(225,203,215,0.72);
+}
+
+QLabel#emptyStateTitle {
+    color: rgba(255,255,255,0.88);
+    font-size: 16px;
+    font-weight: 800;
+}
+
+QLabel#emptyStateSubtitle {
+    color: rgba(184,199,222,0.80);
+    font-size: 12px;
+}
+
+QFrame#composerPanel {
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    min-height: 64px;
+    max-height: 118px;
+}
+
+QLabel#typingLabel {
+    color: transparent;
+    min-height: 0px;
+    max-height: 0px;
+    padding: 0px;
+    margin: 0px;
+}
+
+QFrame#messageInputShell {
+    background: rgba(255,255,255,0.075);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 14px;
+    min-height: 42px;
+    max-height: 46px;
+}
+
+QLineEdit#messageInput {
+    background: transparent;
+    border: none;
+    padding: 0px 4px;
+    min-height: 38px;
+    max-height: 42px;
+    font-size: 15px;
+}
+
+QToolButton#emojiInsideButton {
+    background: transparent;
+    border: none;
+    color: #EAF1FF;
+    font-size: 18px;
+    border-radius: 0px;
+    padding: 0px;
+}
+
+QToolButton#emojiInsideButton:hover {
+    background: transparent;
+    border: none;
+    color: #FFD6EA;
+}
+
+QPushButton#primaryButton {
+    border-radius: 14px;
+    font-size: 18px;
+    padding: 0px 14px;
+    min-height: 42px;
+}
+
+QFrame#inlineReplyFrame {
+    background: rgba(195,142,180,0.13);
+    border: 1px solid rgba(195,142,180,0.22);
+    border-radius: 12px;
+}
+
+QFrame#inlineReplyAccent,
+QFrame#replyPreviewBox {
+    border-left-color: #F2A7CF;
+}
+
+QFrame#inlineReplyAccent {
+    background: #F2A7CF;
+    border-radius: 2px;
+}
+
+QLabel#inlineReplySender,
+QLabel#replySenderLabel {
+    color: #FFD6EA;
+    font-weight: 900;
+}
+
+QFrame#messageBubbleOwn {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #5878A8, stop:0.50 #7566A5, stop:1 #965384);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 13px;
+}
+
+QFrame#messageBubbleOther {
+    background: rgba(255,255,255,0.13);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 13px;
+}
+
+QLabel#messageText,
+QLabel#messageSenderOwn,
+QLabel#messageSenderOther,
+QLabel#messageMeta,
+QLabel#messageStatus {
+    color: #FFFFFF;
+}
+
+QLabel#messageMeta,
+QLabel#messageStatus {
+    font-size: 10px;
+}
+
+QLabel#messageReactions {
+    background: #081222;
+    color: #FFFFFF;
+    padding: 0px;
+    font-size: 12px;
+    font-weight: 900;
+    min-height: 24px;
+}
+
+QFrame#replyPreviewBox {
+    border-left: 3px solid #F2A7CF;
+    background: rgba(195,142,180,0.14);
+    border-radius: 8px;
+}
+
+QFrame#messageActionsRail {
+    background: transparent;
+    border: none;
+}
+
+QToolButton#messageActionButton {
+    background: rgba(12, 22, 39, 0.92);
+    color: #EAF1FF;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+QToolButton#messageActionButton:hover {
+    background: rgba(195,142,180,0.30);
+    border: 1px solid rgba(195,142,180,0.45);
+    color: #FFFFFF;
+}
+
+/* =========================================================
+   PROFILE DIALOG PROFESSIONAL REDESIGN
+   ========================================================= */
+
+QDialog#profileDialog {
+    background: #10233F;
+    border: 1px solid rgba(225,203,215,0.18);
+    border-radius: 18px;
+}
+
+QDialog#profileDialog QFrame#dialogHeroCard {
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 18px;
+}
+
+QDialog#profileDialog QFrame#dialogGlassCard {
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 18px;
+}
+
+QDialog#profileDialog QLabel#dialogTitle {
+    color: #FFFFFF;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+QDialog#profileDialog QLabel#dialogHint {
+    color: #BFD1EA;
+    font-size: 13px;
+}
+
+QDialog#profileDialog QLabel#fieldLabel {
+    color: #E7B8D9;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+}
+
+QDialog#profileDialog QLabel#profilePreviewAvatar {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:1,
+        stop:0 #86A8CF,
+        stop:1 #C38EB4
+    );
+    color: #081222;
+    border-radius: 35px;
+    font-size: 28px;
+    font-weight: 900;
+}
+
+QDialog#profileDialog QLineEdit#profileInput {
+    background: rgba(8,18,34,0.42);
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 13px;
+    padding: 0px 14px;
+    font-size: 14px;
+}
+
+QDialog#profileDialog QLineEdit#profileInput:focus {
+    border: 1px solid rgba(195,142,180,0.75);
+    background: rgba(8,18,34,0.58);
+}
+
+QDialog#profileDialog QPushButton#ghostToolButton {
+    background: rgba(255,255,255,0.075);
+    color: #EAF1FF;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+QDialog#profileDialog QPushButton#ghostToolButton:hover {
+    background: rgba(195,142,180,0.22);
+    border: 1px solid rgba(195,142,180,0.38);
+}
+
+QDialog#profileDialog QPushButton#primaryButton {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 #86A8CF,
+        stop:1 #C38EB4
+    );
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+QDialog#profileDialog QPushButton#primaryButton:hover {
+    background: #A5C0DD;
+}
+
+#adminStatText {
+    color: #EAF1FF;
+    font-size: 14px;
+    font-weight: 700;
+    background: transparent;
+}
+
+#adminBannedUserText {
+    color: #EAF1FF;
+    font-size: 14px;
+    background: transparent;
+}
+

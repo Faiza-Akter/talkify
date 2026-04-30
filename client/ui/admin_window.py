@@ -1070,7 +1070,7 @@ class AdminWindow(QWidget):
             tag = QLabel("You")
             tag.setObjectName("adminSelfTag")
             tag.setAlignment(Qt.AlignCenter)
-            tag.setFixedSize(123, 34)
+            tag.setFixedSize(123, 32)
             layout.addWidget(tag)
         else:
             kick = QPushButton("Kick")

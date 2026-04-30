@@ -15,9 +15,10 @@ class AdminManager:
         if target_username not in self.server.clients:
             return False, f"User '{target_username}' is not online."
 
-        target_socket = self.server.clients[target_username]
-        self.server.remove_client(target_socket)
-
+        # IMPORTANT:
+        # Do not disconnect here. ChatServer must first send the
+        # moderation_restriction packet to the target user, otherwise the
+        # kicked client never receives the warning dialog or local send block.
         return True, f"{target_username} has been kicked."
 
     def ban_user(self, admin_username, target_username, reason="No reason provided"):
@@ -30,13 +31,12 @@ class AdminManager:
         if self.db.is_user_banned(target_username):
             return False, f"User '{target_username}' is already banned."
 
-        # Save ban in database first
+        # Save ban in database first.
         self.db.ban_user(target_username, admin_username, reason)
 
-        # If user is online, disconnect them
+        # Do not disconnect here. ChatServer sends the ban restriction first,
+        # then disconnects the target after a short delay.
         if target_username in self.server.clients:
-            target_socket = self.server.clients[target_username]
-            self.server.remove_client(target_socket)
             return True, f"{target_username} has been banned and disconnected."
 
         return True, f"{target_username} has been banned."

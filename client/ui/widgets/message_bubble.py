@@ -48,7 +48,10 @@ class MessageBubble(QWidget):
         self.setMouseTracking(True)
 
         self.root_layout = QHBoxLayout(self)
-        self.root_layout.setContentsMargins(8, 1, 8, 1)
+        top_gap = 10 if show_sender else 1
+        bottom_gap = 2
+
+        self.root_layout.setContentsMargins(8, top_gap, 8, bottom_gap)
         self.root_layout.setSpacing(6)
 
         # FIX:

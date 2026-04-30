@@ -28,9 +28,12 @@ class NetworkClient(QObject):
     error_received = Signal(str)
     admin_response_received = Signal(str)
     admin_data_received = Signal(dict)
+    moderation_notice_received = Signal(dict)
+    moderation_restriction_received = Signal(dict)
     disconnected = Signal()
 
     message_deleted = Signal(dict)
+    message_reaction_received = Signal(dict)
 
     def __init__(self):
         super().__init__()
@@ -107,6 +110,9 @@ class NetworkClient(QObject):
                     elif packet_type == "delete_message":
                         self.message_deleted.emit(packet)
 
+                    elif packet_type == "message_reaction":
+                        self.message_reaction_received.emit(packet)
+
                     elif packet_type == "user_list":
                         users = packet.get("users", [])
 
@@ -117,6 +123,7 @@ class NetworkClient(QObject):
                                 if username:
                                     normalized_users.append({
                                         "username": username,
+                                        "display_name": user.get("display_name", username),
                                         "online": user.get("online", True),
                                         "is_admin": user.get("is_admin", False),
                                         "profile_picture": user.get("profile_picture", "default_avatar.png"),
@@ -142,6 +149,12 @@ class NetworkClient(QObject):
 
                     elif packet_type == "admin_response":
                         self.admin_response_received.emit(packet.get("message", ""))
+
+                    elif packet_type in ("moderation_notice", "admin_action_notice"):
+                        self.moderation_notice_received.emit(packet)
+
+                    elif packet_type in ("moderation_restriction", "kicked_from_chat", "banned_from_chat"):
+                        self.moderation_restriction_received.emit(packet)
 
                     elif packet_type == "error":
                         self.error_received.emit(packet.get("message", ""))
@@ -175,11 +188,20 @@ class NetworkClient(QObject):
             extra={"reply_to": reply_to}
         ))
 
-    def join_room(self, room_name):
+    def join_room(self, room_name, password=""):
         self._send_packet(create_packet(
             packet_type="join_room",
             sender=self.username,
-            room=room_name
+            room=room_name,
+            extra={"password": password}
+        ))
+
+    def create_room(self, room_name, password="", members=None):
+        self._send_packet(create_packet(
+            packet_type="create_room",
+            sender=self.username,
+            room=room_name,
+            extra={"password": password, "members": members or []}
         ))
 
     def send_room_message(self, room_name, message, reply_to=None):
@@ -217,19 +239,27 @@ class NetworkClient(QObject):
             extra={"profile_picture": profile_picture}
         ))
 
-    def kick_user(self, target):
+    def kick_user(self, target, target_mode=None, room=None):
         self._send_packet(create_packet(
             packet_type="kick",
             sender=self.username,
-            target=target
+            target=target,
+            extra={
+                "target_mode": target_mode,
+                "room": room,
+            }
         ))
 
-    def ban_user(self, target, reason="No reason provided"):
+    def ban_user(self, target, reason="No reason provided", target_mode=None, room=None):
         self._send_packet(create_packet(
             packet_type="ban",
             sender=self.username,
             target=target,
-            message=reason
+            message=reason,
+            extra={
+                "target_mode": target_mode,
+                "room": room,
+            }
         ))
 
     def disconnect(self):
@@ -258,4 +288,21 @@ class NetworkClient(QObject):
         self._send_packet(create_packet(
             packet_type="request_admin_data",
             sender=self.username
+        ))
+
+    def react_to_message(self, message_id, emoji):
+        self._send_packet(create_packet(
+            packet_type="message_reaction",
+            sender=self.username,
+            extra={"message_id": message_id, "emoji": emoji}
+        ))
+
+    def update_profile(self, display_name: str, profile_picture: str = ""):
+        self._send_packet(create_packet(
+            packet_type="update_profile",
+            sender=self.username,
+            extra={
+                "display_name": display_name,
+                "profile_picture": profile_picture,
+            }
         ))

@@ -8,16 +8,26 @@ from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
 class SplashScreen(QWidget):
     def __init__(self, on_finish=None) -> None:
         super().__init__()
+
         self.on_finish = on_finish
+        self._finished = False
 
         self.setWindowTitle('Talkify')
         self.setFixedSize(760, 430)
+
         self.setWindowFlag(Qt.FramelessWindowHint)
-        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setWindowFlag(Qt.Tool, True)
+
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WA_DeleteOnClose, True)
 
         self._build_ui()
         self._play_intro()
-        QTimer.singleShot(1800, self._finish)
+
+        self.finish_timer = QTimer(self)
+        self.finish_timer.setSingleShot(True)
+        self.finish_timer.timeout.connect(self._finish)
+        self.finish_timer.start(1800)
 
     def _trim_transparent_padding(self, pixmap: QPixmap) -> QPixmap:
         image = pixmap.toImage().convertToFormat(QImage.Format_ARGB32)
@@ -33,6 +43,7 @@ class SplashScreen(QWidget):
         for y in range(height):
             for x in range(width):
                 alpha = image.pixelColor(x, y).alpha()
+
                 if alpha > 10:
                     min_x = min(min_x, x)
                     min_y = min(min_y, y)
@@ -54,8 +65,6 @@ class SplashScreen(QWidget):
 
         layout = QVBoxLayout(self.card)
         layout.setContentsMargins(40, 36, 40, 36)
-
-        # Keep this 0, then control spacing manually below
         layout.setSpacing(0)
 
         logo = QLabel()
@@ -65,16 +74,13 @@ class SplashScreen(QWidget):
 
         if os.path.exists(logo_path):
             pixmap = QPixmap(logo_path)
-
-            # Removes empty transparent area inside the PNG
             pixmap = self._trim_transparent_padding(pixmap)
 
-            # Change this size if you want the logo bigger/smaller
             pixmap = pixmap.scaled(
                 150,
                 150,
                 Qt.KeepAspectRatio,
-                Qt.SmoothTransformation
+                Qt.SmoothTransformation,
             )
 
             logo.setPixmap(pixmap)
@@ -92,24 +98,13 @@ class SplashScreen(QWidget):
         self.progress_label.setAlignment(Qt.AlignCenter)
 
         layout.addStretch()
-
         layout.addWidget(logo)
-
-        # Spacing between logo and Talkify
         layout.addSpacing(4)
-
         layout.addWidget(self.title_label)
-
-        # Spacing between Talkify and subtitle
         layout.addSpacing(6)
-
         layout.addWidget(subtitle)
-
-        # Spacing between subtitle and loading text
         layout.addSpacing(22)
-
         layout.addWidget(self.progress_label)
-
         layout.addStretch()
 
         root.addWidget(self.card)
@@ -117,6 +112,7 @@ class SplashScreen(QWidget):
         self.dot_timer = QTimer(self)
         self.dot_timer.timeout.connect(self._animate_dots)
         self.dot_timer.start(350)
+
         self._dots = 0
 
     def _animate_dots(self) -> None:
@@ -132,8 +128,23 @@ class SplashScreen(QWidget):
         self.anim.start()
 
     def _finish(self) -> None:
-        self.dot_timer.stop()
-        self.close()
+        if self._finished:
+            return
 
-        if self.on_finish:
-            self.on_finish()
+        self._finished = True
+
+        if hasattr(self, 'finish_timer') and self.finish_timer.isActive():
+            self.finish_timer.stop()
+
+        if hasattr(self, 'dot_timer') and self.dot_timer.isActive():
+            self.dot_timer.stop()
+
+        callback = self.on_finish
+        self.on_finish = None
+
+        self.hide()
+
+        if callback:
+            callback()
+
+        self.close()

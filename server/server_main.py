@@ -26,6 +26,12 @@ class ChatServer:
         self.admin_manager = AdminManager(self, self.database)
         self.message_store = MessageStore()
 
+        # Runtime moderation restrictions.
+        # A public kick blocks only Public Chat.
+        # A room kick blocks only that room.
+        self.public_restricted_users = set()
+        self.room_restricted_users = {}
+
     def start(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -109,6 +115,12 @@ class ChatServer:
                     elif packet_type == "join_room":
                         self.handle_join_room(client_socket, packet)
 
+                    elif packet_type == "create_room":
+                        self.handle_create_room(client_socket, packet)
+
+                    elif packet_type == "message_reaction":
+                        self.handle_message_reaction(client_socket, packet)
+
                     elif packet_type == "typing":
                         self.handle_typing(client_socket, packet)
 
@@ -117,6 +129,9 @@ class ChatServer:
 
                     elif packet_type == "update_profile_picture":
                         self.handle_profile_picture_update(client_socket, packet)
+
+                    elif packet_type == "update_profile":
+                        self.handle_profile_update(client_socket, packet)
 
                     elif packet_type == "kick":
                         self.handle_kick(client_socket, packet)
@@ -228,6 +243,10 @@ class ChatServer:
         if not content:
             return
 
+        if username in self.public_restricted_users:
+            self._send_public_restriction(username)
+            return
+
         message = self.message_store.create_message(
             scope="public",
             sender=username,
@@ -245,6 +264,7 @@ class ChatServer:
                 "status": "sent",
                 "reply_to": reply_to,
                 "sender_profile_picture": message["sender_profile_picture"],
+                "reactions": message.get("reactions", {}),
             },
         )
 
@@ -293,6 +313,7 @@ class ChatServer:
                 "status": "sent",
                 "reply_to": reply_to,
                 "sender_profile_picture": message["sender_profile_picture"],
+                "reactions": message.get("reactions", {}),
             },
         )
 
@@ -323,8 +344,12 @@ class ChatServer:
             self.send_error(client_socket, "Room name and message are required.")
             return
 
+        if self._is_room_restricted(username, room_name):
+            self._send_room_restriction(username, room_name)
+            return
+
         if not self.room_manager.is_user_in_room(username, room_name):
-            self.send_error(client_socket, f"You are not a member of room '{room_name}'.")
+            self._send_room_restriction(username, room_name)
             return
 
         message = self.message_store.create_message(
@@ -346,6 +371,7 @@ class ChatServer:
                 "status": "sent",
                 "reply_to": reply_to,
                 "sender_profile_picture": message["sender_profile_picture"],
+                "reactions": message.get("reactions", {}),
             },
         )
 
@@ -360,14 +386,48 @@ class ChatServer:
         print(f"[ROOM:{room_name}] {username}: {content}")
         self.send_admin_data_to_admins()
 
+    def handle_create_room(self, client_socket, packet):
+        username = self.require_login(client_socket)
+        if not username:
+            return
+
+        room_name = packet.get("room", "").strip()
+        password = packet.get("password", "")
+        members = packet.get("members", [])
+
+        if not room_name:
+            self.send_error(client_socket, "Room name cannot be empty.")
+            return
+
+        self.room_manager.create_room(room_name, username, password=password, members=members)
+
+        joined_packet = create_packet(
+            packet_type="room_joined",
+            sender="server",
+            room=room_name,
+            message=f"Room '{room_name}' was created.",
+        )
+        self.send_packet(client_socket, joined_packet)
+        self.send_room_list()
+        self.send_admin_data_to_admins()
+
     def handle_join_room(self, client_socket, packet):
         username = self.require_login(client_socket)
         if not username:
             return
 
         room_name = packet.get("room", "").strip()
+        password = packet.get("password", "")
         if not room_name:
             self.send_error(client_socket, "Room name cannot be empty.")
+            return
+
+        if self._is_room_restricted(username, room_name):
+            self._send_room_restriction(username, room_name)
+            return
+
+        if not self.room_manager.can_join_room(room_name, password):
+            self.send_error(client_socket, "Wrong room password.")
             return
 
         self.room_manager.add_user_to_room(username, room_name)
@@ -473,13 +533,52 @@ class ChatServer:
         self.broadcast(update_packet)
         self.send_user_list()
 
+    def handle_profile_update(self, client_socket, packet):
+        username = self.require_login(client_socket)
+        if not username:
+            return
+
+        display_name = packet.get("display_name", "").strip().rstrip("\\")
+        profile_picture = packet.get("profile_picture", "").strip()
+
+        if not display_name:
+            self.send_error(client_socket, "Display name cannot be empty.")
+            return
+
+        with self.lock:
+            if username in self.connected_profiles:
+                self.connected_profiles[username]["display_name"] = display_name
+
+                if profile_picture:
+                    self.connected_profiles[username]["profile_picture"] = profile_picture
+
+        update_packet = create_packet(
+            packet_type="profile_updated",
+            sender="server",
+            extra={
+                "username": username,
+                "display_name": display_name,
+                "profile_picture": profile_picture,
+            },
+        )
+
+        self.broadcast(update_packet)
+        self.send_user_list()
+        self.send_room_list()
+
     def handle_kick(self, client_socket, packet):
         admin_username = self.require_login(client_socket)
         if not admin_username:
             return
 
         target_username = packet.get("target", "").strip()
+        target_mode = (packet.get("target_mode") or "public").strip()
+        room_name = (packet.get("room") or "").strip()
+
         success, message = self.admin_manager.kick_user(admin_username, target_username)
+
+        if success:
+            self._apply_kick_restriction(admin_username, target_username, target_mode, room_name)
 
         self.send_packet(
             client_socket,
@@ -490,6 +589,8 @@ class ChatServer:
                 extra={"success": success},
             ),
         )
+        self.send_user_list()
+        self.send_room_list()
         self.send_admin_data_to_admins()
 
     def handle_ban(self, client_socket, packet):
@@ -498,8 +599,14 @@ class ChatServer:
             return
 
         target_username = packet.get("target", "").strip()
+        target_mode = (packet.get("target_mode") or "public").strip()
+        room_name = (packet.get("room") or "").strip()
         reason = packet.get("message", "").strip() or "No reason provided"
+
         success, message = self.admin_manager.ban_user(admin_username, target_username, reason)
+
+        if success:
+            self._apply_ban_restriction(admin_username, target_username, target_mode, room_name, reason)
 
         self.send_packet(
             client_socket,
@@ -510,7 +617,172 @@ class ChatServer:
                 extra={"success": success},
             ),
         )
+        self.send_user_list()
+        self.send_room_list()
         self.send_admin_data_to_admins()
+
+    def _is_room_restricted(self, username, room_name):
+        return username in self.room_restricted_users.get(room_name.lower(), set())
+
+    def _send_public_restriction(self, username):
+        self.send_to_username(
+            username,
+            create_packet(
+                packet_type="moderation_restriction",
+                sender="Admin",
+                target=username,
+                message="You have been kicked from Public Chat and cannot send messages there anymore.",
+                extra={
+                    "target_mode": "public",
+                    "action": "kicked",
+                    "dialog_message": "You have been kicked from Public Chat and cannot send messages there anymore.",
+                },
+            ),
+        )
+
+    def _send_room_restriction(self, username, room_name):
+        self.send_to_username(
+            username,
+            create_packet(
+                packet_type="moderation_restriction",
+                sender="Admin",
+                target=username,
+                room=room_name,
+                message=f"You have been kicked from {room_name} and cannot send messages there anymore.",
+                extra={
+                    "target_mode": "room",
+                    "action": "kicked",
+                    "dialog_message": f"You have been kicked from {room_name} and cannot send messages there anymore.",
+                },
+            ),
+        )
+
+    def _disconnect_username_after_notice(self, username, delay=0.6):
+        """Disconnect a user after queued moderation packets have time to arrive."""
+        with self.lock:
+            target_socket = self.clients.get(username)
+
+        if not target_socket:
+            return
+
+        try:
+            timer = threading.Timer(delay, lambda: self.remove_client(target_socket))
+            timer.daemon = True
+            timer.start()
+        except Exception:
+            self.remove_client(target_socket)
+
+    def _apply_kick_restriction(self, admin_username, target_username, target_mode, room_name):
+        if target_mode == "room" and room_name:
+            self.room_manager.remove_user_from_room(target_username, room_name)
+            self.room_restricted_users.setdefault(room_name.lower(), set()).add(target_username)
+
+            notice_text = f"Admin kicked {target_username} from {room_name}."
+            target_text = f"You have been kicked from {room_name} and cannot send messages there anymore."
+
+            notice_packet = create_packet(
+                packet_type="moderation_notice",
+                sender="Admin",
+                target=target_username,
+                room=room_name,
+                message=notice_text,
+                extra={"target_mode": "room", "action": "kicked"},
+            )
+            restriction_packet = create_packet(
+                packet_type="moderation_restriction",
+                sender="Admin",
+                target=target_username,
+                room=room_name,
+                message=notice_text,
+                extra={
+                    "target_mode": "room",
+                    "action": "kicked",
+                    "dialog_message": target_text,
+                },
+            )
+
+            self.send_to_username(target_username, restriction_packet)
+            self.broadcast_to_room(room_name, notice_packet)
+            self.send_to_username(admin_username, notice_packet)
+            return
+
+        self.public_restricted_users.add(target_username)
+        notice_text = f"Admin kicked {target_username} from Public Chat."
+        target_text = "You have been kicked from Public Chat and cannot send messages there anymore."
+
+        notice_packet = create_packet(
+            packet_type="moderation_notice",
+            sender="Admin",
+            target=target_username,
+            message=notice_text,
+            extra={"target_mode": "public", "action": "kicked"},
+        )
+        restriction_packet = create_packet(
+            packet_type="moderation_restriction",
+            sender="Admin",
+            target=target_username,
+            message=notice_text,
+            extra={
+                "target_mode": "public",
+                "action": "kicked",
+                "dialog_message": target_text,
+            },
+        )
+
+        with self.lock:
+            target_socket = self.clients.get(target_username)
+
+        self.send_to_username(target_username, restriction_packet)
+        self.broadcast(notice_packet, exclude_socket=target_socket)
+        self._disconnect_username_after_notice(target_username)
+
+    def _apply_ban_restriction(self, admin_username, target_username, target_mode, room_name, reason):
+        notice_room = room_name if target_mode == "room" else None
+        scope_text = room_name if target_mode == "room" and room_name else "Talkify"
+        notice_text = f"Admin banned {target_username} from {scope_text}."
+        target_text = f"You have been banned from {scope_text}."
+
+        if target_mode == "room" and room_name:
+            self.room_manager.remove_user_from_room(target_username, room_name)
+            self.room_restricted_users.setdefault(room_name.lower(), set()).add(target_username)
+        else:
+            self.public_restricted_users.add(target_username)
+
+        restriction_packet = create_packet(
+            packet_type="moderation_restriction",
+            sender="Admin",
+            target=target_username,
+            room=notice_room,
+            message=notice_text,
+            extra={
+                "target_mode": target_mode if target_mode == "room" else "public",
+                "action": "banned",
+                "dialog_message": target_text,
+            },
+        )
+        notice_packet = create_packet(
+            packet_type="moderation_notice",
+            sender="Admin",
+            target=target_username,
+            room=notice_room,
+            message=notice_text,
+            extra={
+                "target_mode": target_mode if target_mode == "room" else "public",
+                "action": "banned",
+            },
+        )
+
+        self.send_to_username(target_username, restriction_packet)
+
+        if target_mode == "room" and room_name:
+            self.broadcast_to_room(room_name, notice_packet)
+            self.send_to_username(admin_username, notice_packet)
+        else:
+            with self.lock:
+                target_socket = self.clients.get(target_username)
+            self.broadcast(notice_packet, exclude_socket=target_socket)
+
+        self._disconnect_username_after_notice(target_username)
 
     def handle_delete_message(self, client_socket, packet):
         username = self.require_login(client_socket)
@@ -526,14 +798,59 @@ class ChatServer:
         if message["sender"] != username:
             return
 
+        self.message_store.mark_deleted(message_id)
+
         delete_packet = create_packet(
             packet_type="delete_message",
             sender="server",
-            extra={"message_id": message_id},
+            room=message.get("room"),
+            target=message.get("target"),
+            extra={
+                "message_id": message_id,
+                "scope": message.get("scope"),
+            },
         )
 
-        self.broadcast(delete_packet)
+        self._broadcast_message_update(message, delete_packet)
         self.send_admin_data_to_admins()
+
+    def handle_message_reaction(self, client_socket, packet):
+        username = self.require_login(client_socket)
+        if not username:
+            return
+
+        message_id = packet.get("message_id", "").strip()
+        emoji = packet.get("emoji", "").strip()
+        if not message_id or not emoji:
+            return
+
+        message = self.message_store.add_reaction(message_id, emoji)
+        if not message:
+            return
+
+        reaction_packet = create_packet(
+            packet_type="message_reaction",
+            sender=username,
+            room=message.get("room"),
+            target=message.get("target"),
+            extra={
+                "message_id": message_id,
+                "emoji": emoji,
+                "count": message.get("reactions", {}).get(emoji, 1),
+                "scope": message.get("scope"),
+            },
+        )
+        self._broadcast_message_update(message, reaction_packet)
+
+    def _broadcast_message_update(self, message, packet):
+        scope = message.get("scope")
+        if scope == "room" and message.get("room"):
+            self.broadcast_to_room(message.get("room"), packet)
+        elif scope == "private":
+            self.send_to_username(message.get("sender"), packet)
+            self.send_to_username(message.get("target"), packet)
+        else:
+            self.broadcast(packet)
 
     def handle_request_admin_data(self, client_socket, packet):
         username = self.require_login(client_socket)
@@ -695,6 +1012,7 @@ class ChatServer:
                     "online": True,
                     "is_admin": bool(profile.get("is_admin")),
                     "profile_picture": profile.get("profile_picture", "default_avatar.png"),
+                    "display_name": profile.get("display_name", username),
                 }
                 for username, profile in self.connected_profiles.items()
             ]
@@ -708,7 +1026,13 @@ class ChatServer:
         )
 
     def send_room_list(self):
-        rooms = self.room_manager.get_all_rooms()
+        rooms = [
+            {
+                "name": room,
+                "members": self.room_manager.get_users_in_room(room),
+            }
+            for room in self.room_manager.get_all_rooms()
+        ]
         self.broadcast(
             create_packet(
                 "room_list",

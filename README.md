@@ -202,9 +202,9 @@ TALKIFY/
 
 ## Screenshots
 
-| Splash Screen                                        | Login Window                                       | User Window                                            |
+| Splash Screen                                        | Onboarding Screen                                       | User Window                                            |
 | -----------------------------------------------------| ---------------------------------------------------| -------------------------------------------------------|
-| ![Splash Screen](client/ui/assets/splash_screen.png) | ![Login Window](client/ui/assets/login_window.png) | ![User Window](client/ui/assets/empty_placeholder.png) |
+| ![Splash Screen](client/ui/assets/splash_screen.png) | ![Onboarding Screen](client/ui/assets/login_window.png) | ![User Window](client/ui/assets/empty_placeholder.png) |
 
 | Profile Setting                                          | Join Room                                      | Create Room                                      |
 | ---------------------------------------------------------| -----------------------------------------------| -------------------------------------------------|
